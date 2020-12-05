@@ -1,0 +1,31 @@
+stages:
+  - build
+  - test
+
+build:
+  image: dliu/ubuntu-gcc-valgrind
+  tags:
+    - c
+  stage: build
+  script:
+    - make
+  artifacts:
+    paths:
+      - sysprak-client
+
+test:
+  image: dliu/ubuntu-gcc-valgrind
+  tags:
+    - c
+  stage: test
+  script:
+    - valgrind --leak-check=full --trace-children=yes ./sysprak-client
+
+run:
+  image: dliu/ubuntu-gcc-valgrind
+  tags: 
+    - c
+  stage: test
+  script:
+    - make play
+  when: always
