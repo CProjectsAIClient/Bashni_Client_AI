@@ -3,6 +3,4 @@
 
 void getConnectInfo(int argc, char* argv[]);
 
-
-
 #endif
