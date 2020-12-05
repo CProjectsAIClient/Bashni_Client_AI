@@ -1,6 +1,6 @@
 #ifndef performConnection
 #define performConnection
 
-void getConnectInfo(int argc, char* argv[]);
+void getConnectInfo(char *gameid, int player);
 
 #endif
