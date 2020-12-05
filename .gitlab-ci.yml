@@ -19,7 +19,7 @@ test:
     - c
   stage: test
   script:
-    - valgrind --leak-check=full --trace-children=yes
+    - valgrind --leak-check=full --trace-children=yes ./sysprak-client
 
 run:
   image: dliu/ubuntu-gcc-valgrind
