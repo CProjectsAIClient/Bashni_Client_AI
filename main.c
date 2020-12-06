@@ -4,9 +4,13 @@
 #include <getopt.h>
 #include <string.h>
 
+
+
+
 int main(int argc, char* argv[]) {
     printf("Hello World\n");
 
+    
     char *playid;
     int player;
     int c;
@@ -36,6 +40,8 @@ int main(int argc, char* argv[]) {
     }
 
     getConnectInfo(playid, player);
+
+    doperformConnection();
 
 
 

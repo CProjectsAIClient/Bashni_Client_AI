@@ -8,4 +8,4 @@ sysprak-client: main.c
 	gcc -o sysprak-client -Wall -Wextra -Werror main.c performConnection.a
 
 play:
-    ./sysprak-client
+	./sysprak-client

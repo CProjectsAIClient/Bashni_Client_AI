@@ -3,4 +3,6 @@
 
 void getConnectInfo(char *gameid, int player);
 
+void doperformConnection();
+
 #endif
