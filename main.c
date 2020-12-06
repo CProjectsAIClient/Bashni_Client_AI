@@ -10,11 +10,18 @@
 int main(int argc, char* argv[]) {
     printf("Hello World\n");
 
-    
+    //variablen fuer konsolenparameter
     char *playid;
+    //playid = calloc(14, sizeof(char));
     int player;
+
+    //filedeskriptor erstellen
+    int* sock = NULL;
+    sock = calloc(1,sizeof(int));
+    *sock = makeConnection();
+
+    //einlesen der Konsolenwerte mit getopt fuer eingaben -g gameid -p player
     int c;
-    
     while ((c = getopt(argc,argv, "g:p:")) != -1){
         switch(c){
             case 'g':
@@ -22,10 +29,6 @@ int main(int argc, char* argv[]) {
                 break;
             case 'p':
                 player = atoi(optarg);
-                // if(player != 1 && player != 2 && player != 0) {
-                //     perror("Bitte maximal 2 Players einfuegen.\n\n");
-                //     return 1;
-                // }
                 break;
             case ':':
                 printf("Wert fehlt fuer g oder p");
@@ -41,7 +44,11 @@ int main(int argc, char* argv[]) {
 
     getConnectInfo(playid, player);
 
-    doperformConnection();
+    doperformConnection(sock, playid, player);
+
+    
+    //befreien von allozierten speicherplaetzen
+    //free(playid);
 
 
 
