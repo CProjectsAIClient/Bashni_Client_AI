@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 
 
@@ -24,7 +25,7 @@ void getConnectInfo(char *gameid, int player) {
 void doperformConnection(){
     //socket anlegen
     int sock;
-    if( (sock = socket(PF_INET,SOCK_STREAM,0))>0){
+    if( (sock = socket(AF_INET,SOCK_STREAM,0))>0){
         printf("Socket steht...\n");
     }
 
@@ -32,18 +33,28 @@ void doperformConnection(){
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORTNUMBER);
-    inet_aton(HOSTNAME, &addr.sin_addr);
+    /*int cont;
+    cont =inet_aton(HOSTNAME, &addr.sin_addr);
+    printf("HOSTNAME existiert: %i\n", cont);//0 wenn es nicht funktioniert, was anderes wenn es funktioniert...*/
+
+    struct hostent *hp;
+    hp = gethostbyname(HOSTNAME);
+    if(hp == NULL) {
+        fprintf(stderr,"%s unknown host.\n",HOSTNAME);
+        exit(2);
+    }
+    /* copies the internet address to server address */
+    bcopy(hp->h_addr_list[0], &addr.sin_addr, hp->h_length);
 
     //addr.sin_addr.s_addr = inet_addr(HOSTNAME);
     //server.sin_port = htons(PORTNUMBER);
 
+    int connected;
     //Verbindung aufbauen
-    if(connect(sock, (struct sockaddr*) &addr, sizeof(addr))== 0){
-        printf("connect() war erfolgreich");
+    if((connected = connect(sock, (struct sockaddr*) &addr, sizeof(addr)))== 0){
+        printf("connect() war erfolgreich\n");
     } else {
-        printf("Error");
+        printf("Error: %i\n", connected);
     }
-
-
 
 }
