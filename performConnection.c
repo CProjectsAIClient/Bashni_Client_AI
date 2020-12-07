@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 
-#define BUF 256
+#define BUF 1024
 
 #define GAMEKINDNAME "Bashni"
 #define PORTNUMBER 1357
@@ -95,18 +95,18 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Ausgaben des Client in der Kommunikation mit dem Server
     //Ausgabe der GameID des Client
-    char gameId[17];//14 fuer gameID und 3 fuer "ID "
-    sprintf(gameId, "ID %s", gameid);
+    char gameId[18];//14 fuer gameID und 3 fuer "ID " und 1 fuer \n
+    sprintf(gameId, "ID %s\n", gameid);
     printf("GameID: %s\n", gameId);
 
     //Ausgeben der Player ID fuer den Server
-    char playerNr[9];
-    sprintf(playerNr, "PLAYER %d", player);
+    char playerNr[10];
+    sprintf(playerNr, "PLAYER %d\n", player);
     printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
     myread(sock,buffer);
-    mywrite(sock,"VERSION 2.3");
+    mywrite(sock,"VERSION 2.3\n");
 
     //Client wird nach SpielID gefragt + rueckgabe
     myread(sock,buffer);
@@ -115,19 +115,24 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Client wird nach gewuenschter Spielernummer gefragt + Antwort
     myread(sock,buffer);
-    myread(sock,buffer);
-    mywrite(sock,playerNr);
+    //mywrite(sock,playerNr);
+    mywrite(sock,"PLAYER");
     
     //Server schickt die eigene Mitspielernummer + Name
     myread(sock,buffer);
     //Server schickt die Mitgliederanzahl
     char* total = myread(sock,buffer);
+    printf("Total: %s", total);
     int count = atoi(total+6);
+    printf("Count %d\n", count);
+    free(buffer);
+    exit(1);
 
     while(count - 1){
         count--;
         myread(sock,buffer);
     }
+//14c82rbsc4ymz
 
 
     // do {
