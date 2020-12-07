@@ -20,6 +20,23 @@
 #define PORTNUMBER 1357
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
+char* myread(int *sock, char *buffer) {
+    ssize_t size;
+    size = recv(*sock, buffer, BUF-1, 0);
+
+    if (size > 0) buffer[size] = '\0';
+    printf("S: %s", buffer);
+
+    return buffer;
+}
+
+void mywrite(int * sock, char * buffer){
+    send(*sock, buffer,strlen(buffer), 0);
+    printf("C: %s", buffer);
+}
+
+
+
 /* get opt machen methode soll kommandozeilenparameter aus main benutzen*/
 void getConnectInfo(char *gameid, int player) {
     // char v[15];
@@ -75,46 +92,57 @@ void doperformConnection(int *sock,char gameid[],  int player){
     printf("Chat\n\n\n");
     char *buffer = (char*) malloc(sizeof(char) * BUF);
     ssize_t size;
-    char **clientsays;
-    clientsays = calloc(3,sizeof(char));
-    for(int i = 0; i<3; i++){
-        *(clientsays+i) = calloc(BUF,sizeof(char));
-    }
 
-    // char *version;
-    // char *id_game;
-    // char *iwas;
-
-
-    char gameId[3+sizeof(gameid)];
-    sprintf(&gameId, "ID %s", gameid);
+    //Ausgaben des Client in der Kommunikation mit dem Server
+    //Ausgabe der GameID des Client
+    char gameId[17];//14 fuer gameID und 3 fuer "ID "
+    sprintf(gameId, "ID %s", gameid);
     printf("GameID: %s\n", gameId);
 
-    char playerNr[8];
-    sprintf(&playerNr, "PLAYER %d", player);
-    printf("PlayerID: %s\n", playerNr);
+    //Ausgeben der Player ID fuer den Server
+    char playerNr[9];
+    sprintf(playerNr, "PLAYER %d", player);
+    printf("PlayerID: %s\n\n\n\n", playerNr);
 
-    *(clientsays) = "VERSION 2.3";
-    *(clientsays+1) = gameId;
-    *(clientsays+2) = playerNr;
+    //client wird nach Version gefragt + rueckgabe der Version
+    myread(sock,buffer);
+    mywrite(sock,"VERSION 2.3");
 
+    //Client wird nach SpielID gefragt + rueckgabe
+    myread(sock,buffer);
+    mywrite(sock,gameId);
     
 
-    do {
-        size = recv(*sock, buffer, BUF-1, 0);
+    //Client wird nach gewuenschter Spielernummer gefragt + Antwort
+    myread(sock,buffer);
+    myread(sock,buffer);
+    mywrite(sock,playerNr);
+    
+    //Server schickt die eigene Mitspielernummer + Name
+    myread(sock,buffer);
+    //Server schickt die Mitgliederanzahl
+    char* total = myread(sock,buffer);
+    int count = atoi(total+6);
 
-        if (size > 0) buffer[size] = '\0';
-        printf("S: %s", buffer);
-
-        if ( strcmp(buffer,"quit\n") ) {
-            printf("C: ");
-            fgets(buffer, BUF, stdin);
-            send(*sock, buffer, strlen(buffer), 0);
-        }
-    } while ( strcmp(buffer,"quit\n") != 0 );
-
-    for(int i = 0; i<3; i++){
-        free(*(clientsays+i));
+    while(count - 1){
+        count--;
+        myread(sock,buffer);
     }
-    free(clientsays);
+
+
+    // do {
+    //     size = recv(*sock, buffer, BUF-1, 0);
+
+    //     if (size > 0) buffer[size] = '\0';
+    //     printf("S: %s", buffer);
+
+    //     if ( strcmp(buffer,"quit\n") ) {
+    //         printf("C: ");
+    //         fgets(buffer, BUF, stdin);
+    //         send(*sock, buffer, strlen(buffer), 0);
+    //     }
+    // } while ( strcmp(buffer,"quit\n") != 0 );
+
+   
 }
+
