@@ -11,9 +11,9 @@ int main(int argc, char* argv[]) {
     printf("Hello World\n");
 
     //variablen fuer konsolenparameter
-    char *playid;
+    char *playid = NULL;
     //playid = calloc(14, sizeof(char));
-    int player;
+    int player=0;
 
     //filedeskriptor erstellen
     int* sock = NULL;
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    getConnectInfo(playid, player);
+    printf("playid=%s, player:%i\n", playid, player);
 
     doperformConnection(sock, playid, player);
 

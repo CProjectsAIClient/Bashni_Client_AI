@@ -31,22 +31,12 @@ char* myread(int *sock, char *buffer) {
 }
 
 void mywrite(int * sock, char * buffer){
-    send(*sock, buffer,strlen(buffer), 0);
-    printf("C: %s", buffer);
-}
+    char buff[strlen(buffer)+1];
+    sprintf(buff, "%s\n", buffer);
 
 
-
-/* get opt machen methode soll kommandozeilenparameter aus main benutzen*/
-void getConnectInfo(char *gameid, int player) {
-    // char v[15];
-    // int k=0;
-    // while(gameid){
-    //     v[k++] = (char)gameid++;
-    // }
-
-
-    printf("playid=%s, player:%i\n", gameid, player);
+    send(*sock, buff,strlen(buff), 0);
+    printf("C: %s", buff);
 }
 
 int makeConnection(){
@@ -96,17 +86,17 @@ void doperformConnection(int *sock,char gameid[],  int player){
     //Ausgaben des Client in der Kommunikation mit dem Server
     //Ausgabe der GameID des Client
     char gameId[18];//14 fuer gameID und 3 fuer "ID " und 1 fuer \n
-    sprintf(gameId, "ID %s\n", gameid);
+    sprintf(gameId, "ID %s", gameid);
     printf("GameID: %s\n", gameId);
 
     //Ausgeben der Player ID fuer den Server
     char playerNr[10];
-    sprintf(playerNr, "PLAYER %d\n", player);
+    sprintf(playerNr, "PLAYER %d", player);
     printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
     myread(sock,buffer);
-    mywrite(sock,"VERSION 2.3\n");
+    mywrite(sock,"VERSION 2.3");
 
     //Client wird nach SpielID gefragt + rueckgabe
     myread(sock,buffer);
@@ -122,7 +112,7 @@ void doperformConnection(int *sock,char gameid[],  int player){
     myread(sock,buffer);
     //Server schickt die Mitgliederanzahl
     char* total = myread(sock,buffer);
-    printf("Total: %s", total);
+    printf("Total: %s\n", total);
     int count = atoi(total+6);
     printf("Count %d\n", count);
     free(buffer);
@@ -132,7 +122,7 @@ void doperformConnection(int *sock,char gameid[],  int player){
         count--;
         myread(sock,buffer);
     }
-//14c82rbsc4ymz
+//3k4dlccz3xwfv
 
 
     // do {
