@@ -25,7 +25,15 @@ char* myread(int *sock, char *buffer) {
     size = recv(*sock, buffer, BUF-1, 0);
 
     if (size > 0) buffer[size] = '\0';
-    printf("S: %s", buffer);
+    
+
+    if (*buffer == '-'){
+        printf("Es gab ein Problem...\n");
+        printf("\n bei %s\n", buffer);
+        exit(0);
+    } else {
+        printf("S: %s", buffer);
+    }
 
     return buffer;
 }
