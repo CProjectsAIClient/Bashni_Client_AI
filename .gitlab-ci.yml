@@ -19,7 +19,7 @@ test:
     - c
   stage: test
   script:
-    - valgrind --leak-check=full --trace-children=yes ./sysprak-client
+    - make test
 
 run:
   image: dliu/ubuntu-gcc-valgrind
@@ -29,3 +29,4 @@ run:
   script:
     - make play
   when: always
+  allow_failure: true
