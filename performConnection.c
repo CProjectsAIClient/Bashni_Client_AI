@@ -20,19 +20,33 @@
 #define PORTNUMBER 1357
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
-char* myread(int *sock, char *buffer) {
-    ssize_t size;
-    size = recv(*sock, buffer, BUF-1, 0);
-
-    if (size > 0) buffer[size] = '\0';
+char* myread(int *sock) {
+    char *buffer;// = calloc(1024, sizeof(char));
+    //printf("S: ");
+    char b[1024] = "";
+    int i=0;
+    char current;
+    do {
+        recv(*sock, &current, 1, 0);
+        //(*buffer)++ = current;
+        b[i++] = current;
+        //sprintf(buffer, "%c", current);
+        //printf("%c",current);
+    } while (current != '\n');
     
 
-    if (*buffer == '-'){
+    //ssize_t size;
+    //size = recv(*sock, buffer, BUF-1, 0);
+
+    //if (size > 0) buffer[size] = '\0';
+    
+
+    if (b[0] == '-'){
         printf("Es gab ein Problem...\n");
         printf("\n bei %s\n", buffer);
         exit(0);
     } else {
-        printf("S: %s", buffer);
+        printf("S: %s", b);
     }
 
     return buffer;
@@ -103,32 +117,37 @@ void doperformConnection(int *sock,char gameid[],  int player){
     printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
-    myread(sock,buffer);
+    myread(sock);
     mywrite(sock,"VERSION 2.3");
 
     //Client wird nach SpielID gefragt + rueckgabe
-    myread(sock,buffer);
+    myread(sock);
     mywrite(sock,gameId);
     
 
     //Client wird nach gewuenschter Spielernummer gefragt + Antwort
-    myread(sock,buffer);
+    myread(sock);
+    myread(sock);
     //mywrite(sock,playerNr);
     mywrite(sock,"PLAYER");
     
     //Server schickt die eigene Mitspielernummer + Name
-    myread(sock,buffer);
+    myread(sock);
     //Server schickt die Mitgliederanzahl
-    char* total = myread(sock,buffer);
+    char* total = myread(sock);
     printf("Total: %s\n", total);
-    int count = atoi(total+6);
+    int count = strtol(total, &total, 8);
+    //int count = atoi(total+9);
     printf("Count %d\n", count);
+
+    
+
     free(buffer);
     exit(1);
 
     while(count - 1){
         count--;
-        myread(sock,buffer);
+        myread(sock);
     }
 //3k4dlccz3xwfv
 
