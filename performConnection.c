@@ -20,37 +20,21 @@
 #define PORTNUMBER 1357
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
+//liest werte vom Server
 char* myread(int *sock, char *buffer) {
-    //free(buffer);
-    //buffer = calloc(1024, sizeof(char));
-    //printf("S: ");
-    char b[1024] = "";
+    //Erstellt char Speicher mit Größe BUF zum Lesen vom Server
+    char b[BUF] = "";
     int i=0;
     char current;
+    //liest Nachricht in einzelnen char ein
     do {
         recv(*sock, &current, 1, 0);
-        //(*buffer)++ = current;
         b[i++] = current;
-        
-        //printf("current: %c\n", *current);
-        //buffer[i] = cu
-        //*(buffer+i) = *current;
-        // printf("buffer+i:%c \n",*(buffer+i));
-        // i++;
-        //sprintf(buffer, "%c", current);
-        //printf("%c",current);
     } while (current != '\n');
     
     buffer = b;
-    
-
-    //ssize_t size;
-    //size = recv(*sock, buffer, BUF-1, 0);
-
-    //if (size > 0) buffer[size] = '\0';
-    
-
-    if (b[0] == '-'){
+    //beruecksichtigt moegliche fehler
+   if (b[0] == '-'){
         printf("Es gab ein Problem...\n");
         printf("\n bei %s\n", b);
         exit(0);
@@ -62,10 +46,11 @@ char* myread(int *sock, char *buffer) {
 }
 
 void mywrite(int * sock, char * buffer){
+    //Erstellt char Speicher mit der buffer String laenge +1 (für \n)
     char buff[strlen(buffer)+1];
+    //Fuegt \n an
     sprintf(buff, "%s\n", buffer);
-
-
+    //Sendet Nachricht an den Server
     send(*sock, buff,strlen(buff), 0);
     printf("C: %s", buff);
 }
@@ -81,10 +66,7 @@ int makeConnection(){
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORTNUMBER);
-    /*int cont;
-    cont =inet_aton(HOSTNAME, &addr.sin_addr);
-    printf("HOSTNAME existiert: %i\n", cont);//0 wenn es nicht funktioniert, was anderes wenn es funktioniert...*/
-
+   
     //Wandelt Hostname in Adresse um;
     struct hostent *hp;
     hp = gethostbyname(HOSTNAME);
@@ -92,11 +74,8 @@ int makeConnection(){
         fprintf(stderr,"%s unknown host.\n",HOSTNAME);
         exit(2);
     }
-    /* copies the internet address to server address */
+    // copies the internet address to server address
     bcopy(hp->h_addr_list[0], &addr.sin_addr, hp->h_length);
-
-    //addr.sin_addr.s_addr = inet_addr(HOSTNAME);
-    //server.sin_port = htons(PORTNUMBER);
 
     int connected;
     //Verbindung aufbauen
@@ -111,7 +90,7 @@ int makeConnection(){
 
 void doperformConnection(int *sock,char gameid[],  int player){
     printf("Chat\n\n\n");
-    char *buffer = (char*) malloc(sizeof(char) * BUF);
+    char *buffer; // = (char*) malloc(sizeof(char) * BUF);
     ssize_t size;
 
     //Ausgaben des Client in der Kommunikation mit dem Server
@@ -142,11 +121,10 @@ void doperformConnection(int *sock,char gameid[],  int player){
     
     //Server schickt die eigene Mitspielernummer + Name
     myread(sock, buffer);
+
     //Server schickt die Mitgliederanzahl
-    char* total = myread(sock, buffer);
+    char *total = myread(sock, buffer);
     printf("Total: %s\n", total);
-    //int count = strtol(total, &total, 8);
-    //int count = atoi(*(total[8]));
     int count = atoi(total+8);
     printf("Count %d\n", count);
 
@@ -162,24 +140,6 @@ void doperformConnection(int *sock,char gameid[],  int player){
         exit(0);
     }
     
-    free(buffer);
-    exit(1);
-//27zw8h8snq5at
-
-
-    // do {
-    //     size = recv(*sock, buffer, BUF-1, 0);
-
-    //     if (size > 0) buffer[size] = '\0';
-    //     printf("S: %s", buffer);
-
-    //     if ( strcmp(buffer,"quit\n") ) {
-    //         printf("C: ");
-    //         fgets(buffer, BUF, stdin);
-    //         send(*sock, buffer, strlen(buffer), 0);
-    //     }
-    // } while ( strcmp(buffer,"quit\n") != 0 );
-
-   
+    free(total);
 }
 

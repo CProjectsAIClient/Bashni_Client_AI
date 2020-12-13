@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    printf("playid=%s, player:%i\n", playid, player);
+    //printf("playid=%s, player:%i\n", playid, player);
 
     doperformConnection(sock, playid, player);
 

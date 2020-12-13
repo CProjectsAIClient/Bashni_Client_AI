@@ -1,13 +1,13 @@
 OBJS    = performConnection.o
 OUT     = sysprak-client
-CC  = gcc
+CC      = gcc
 FLAGS   = -Wall -Wextra -Werror
 
 all: main.c performConnection.o
-	$(CC) -o $(OUT) $(FLAGS) main.c $(OBJS)
+	$(CC) -g -o $(OUT) $(FLAGS) main.c $(OBJS)
 
 performConnection.o: performConnection.c
-	$(CC) -c performConnection.c
+	$(CC) -g -c performConnection.c
 
 clean:
 	rm -f $(OBJS) $(OUT)
