@@ -8,8 +8,6 @@
 
 
 int main(int argc, char* argv[]) {
-    printf("Hello World\n");
-
     //variablen fuer konsolenparameter
     char *playid = NULL;
     //playid = calloc(14, sizeof(char));

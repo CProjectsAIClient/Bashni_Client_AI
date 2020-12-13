@@ -58,8 +58,8 @@ void mywrite(int * sock, char * buffer){
 int makeConnection(){
     //socket anlegen
     int sock;
-    if( (sock = socket(AF_INET,SOCK_STREAM,0))>0){
-        printf("Socket steht...: %d\n", sock);
+    if( (sock = socket(AF_INET,SOCK_STREAM,0))<=0){
+        printf("Socket Fehler: %d!\n", sock);
     }
 
     //verbindungsadresse eingeben
@@ -89,7 +89,7 @@ int makeConnection(){
 }
 
 void doperformConnection(int *sock,char gameid[],  int player){
-    printf("Chat\n\n\n");
+    //printf("Chat\n\n\n");
     char *buffer; // = (char*) malloc(sizeof(char) * BUF);
     ssize_t size;
 
@@ -97,12 +97,12 @@ void doperformConnection(int *sock,char gameid[],  int player){
     //Ausgabe der GameID des Client
     char gameId[18];//14 fuer gameID und 3 fuer "ID " und 1 fuer \n
     sprintf(gameId, "ID %s", gameid);
-    printf("GameID: %s\n", gameId);
+    //printf("GameID: %s\n", gameId);
 
     //Ausgeben der Player ID fuer den Server
     char playerNr[10];
     sprintf(playerNr, "PLAYER %d", player);
-    printf("PlayerID: %s\n\n\n\n", playerNr);
+    //printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
     myread(sock, buffer);
@@ -124,9 +124,7 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Server schickt die Mitgliederanzahl
     char *total = myread(sock, buffer);
-    //printf("Total: %s\n", total);
     int count = atoi(total+8);
-    //printf("Count %d\n", count);
 
 
     while(count-1){
