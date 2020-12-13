@@ -124,9 +124,9 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Server schickt die Mitgliederanzahl
     char *total = myread(sock, buffer);
-    printf("Total: %s\n", total);
+    //printf("Total: %s\n", total);
     int count = atoi(total+8);
-    printf("Count %d\n", count);
+    //printf("Count %d\n", count);
 
 
     while(count-1){
@@ -140,6 +140,6 @@ void doperformConnection(int *sock,char gameid[],  int player){
         exit(0);
     }
     
-    free(total);
+    //free(total);
 }
 
