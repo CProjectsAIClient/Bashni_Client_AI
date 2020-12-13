@@ -6,7 +6,7 @@
 
 
 
-
+//test
 int main(int argc, char* argv[]) {
     //variablen fuer konsolenparameter
     char *playid = NULL;
