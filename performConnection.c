@@ -20,8 +20,9 @@
 #define PORTNUMBER 1357
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
-char* myread(int *sock) {
-    char *buffer;// = calloc(1024, sizeof(char));
+char* myread(int *sock, char *buffer) {
+    //free(buffer);
+    //buffer = calloc(1024, sizeof(char));
     //printf("S: ");
     char b[1024] = "";
     int i=0;
@@ -30,9 +31,17 @@ char* myread(int *sock) {
         recv(*sock, &current, 1, 0);
         //(*buffer)++ = current;
         b[i++] = current;
+        
+        //printf("current: %c\n", *current);
+        //buffer[i] = cu
+        //*(buffer+i) = *current;
+        // printf("buffer+i:%c \n",*(buffer+i));
+        // i++;
         //sprintf(buffer, "%c", current);
         //printf("%c",current);
     } while (current != '\n');
+    
+    buffer = b;
     
 
     //ssize_t size;
@@ -43,7 +52,7 @@ char* myread(int *sock) {
 
     if (b[0] == '-'){
         printf("Es gab ein Problem...\n");
-        printf("\n bei %s\n", buffer);
+        printf("\n bei %s\n", b);
         exit(0);
     } else {
         printf("S: %s", b);
@@ -113,43 +122,49 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Ausgeben der Player ID fuer den Server
     char playerNr[10];
-    sprintf(playerNr, "PLAYER %d", player);
+    sprintf(playerNr, "PLAYER %d", --player);
     printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
-    myread(sock);
+    myread(sock, buffer);
     mywrite(sock,"VERSION 2.3");
 
     //Client wird nach SpielID gefragt + rueckgabe
-    myread(sock);
+    myread(sock, buffer);
     mywrite(sock,gameId);
     
 
     //Client wird nach gewuenschter Spielernummer gefragt + Antwort
-    myread(sock);
-    myread(sock);
+    myread(sock, buffer);
+    myread(sock, buffer);
     //mywrite(sock,playerNr);
-    mywrite(sock,"PLAYER");
+    mywrite(sock, playerNr);
     
     //Server schickt die eigene Mitspielernummer + Name
-    myread(sock);
+    myread(sock, buffer);
     //Server schickt die Mitgliederanzahl
-    char* total = myread(sock);
+    char* total = myread(sock, buffer);
     printf("Total: %s\n", total);
-    int count = strtol(total, &total, 8);
-    //int count = atoi(total+9);
+    //int count = strtol(total, &total, 8);
+    //int count = atoi(*(total[8]));
+    int count = atoi(total+8);
     printf("Count %d\n", count);
 
-    
 
+    while(count-1){
+        count--;
+        myread(sock, buffer);
+    }
+
+    char *end = myread(sock, buffer);
+    if (*end != '+') {
+        printf("Fehler in der Prolog Phase!");
+        exit(0);
+    }
+    
     free(buffer);
     exit(1);
-
-    while(count - 1){
-        count--;
-        myread(sock);
-    }
-//3k4dlccz3xwfv
+//27zw8h8snq5at
 
 
     // do {
