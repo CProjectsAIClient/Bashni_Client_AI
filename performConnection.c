@@ -122,7 +122,7 @@ void doperformConnection(int *sock,char gameid[],  int player){
 
     //Ausgeben der Player ID fuer den Server
     char playerNr[10];
-    sprintf(playerNr, "PLAYER %d", --player);
+    sprintf(playerNr, "PLAYER %d", player);
     printf("PlayerID: %s\n\n\n\n", playerNr);
 
     //client wird nach Version gefragt + rueckgabe der Version
