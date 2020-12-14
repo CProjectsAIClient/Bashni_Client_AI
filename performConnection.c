@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include<stdlib.h>
 #include "performConnection.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,7 +22,6 @@
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
 
-//test
 //liest werte vom Server
 char* myread(int *sock, char *buffer) {
     //Erstellt char Speicher mit Größe BUF zum Lesen vom Server
