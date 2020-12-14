@@ -20,6 +20,8 @@
 #define PORTNUMBER 1357
 #define HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de" 
 
+
+//test
 //liest werte vom Server
 char* myread(int *sock, char *buffer) {
     //Erstellt char Speicher mit Größe BUF zum Lesen vom Server
