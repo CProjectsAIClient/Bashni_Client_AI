@@ -4,7 +4,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h> 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
 
 #include "performConnection.h"
 #include "thinker.h"
@@ -14,8 +16,8 @@
 
 int main(int argc, char *argv[]) {
     //variablen fuer konsolenparameter
-    char *playid = NULL;
-    int player = 0;
+    char *gameid = NULL;
+    int playerid = 0;
     //konfig ist client.conf, wenn es vom Client nicht anders präzisiert wird
     char *konfig = "client.conf";
     
@@ -24,11 +26,11 @@ int main(int argc, char *argv[]) {
     while ((c = getopt(argc,argv, "g:p:c:")) != -1){
         switch(c){
             case 'g':
-                playid = optarg;
+                gameid = optarg;
                 printf("reading g in getopt\n");
                 break;
             case 'p':
-                player = atoi(optarg);
+                playerid = atoi(optarg);
                 printf("reading p in getopt\n");
                 break;
             case 'c':
@@ -57,19 +59,47 @@ int main(int argc, char *argv[]) {
     sock = calloc(1, sizeof(int));
     *sock = makeConnection(game_conf);
 
+    game *current_game = malloc(sizeof(game));
+    current_game->connectorID = 0;
+    current_game->thinkerID   = 1;
+
+    
+   
+    //Erstellen eines SHM-Bereichs
+    int memory_id = shmget(IPC_PRIVATE, sizeof(game), IPC_CREAT | 0666);
+    if(memory_id == -1){
+        printf("Fehler beim Erstellen des SHM\n");
+        exit(-2);
+    }printf("shmget funktioniert\n");
+
     //Erstellen eines weiteren Prozesses
     pid_t pid;
     pid = fork();
-
+    
+    void *shmdata = shmat(memory_id,NULL,0);
+    if(shmdata == (void *) -1){ //(char *)-1
+        printf("Fehler beim Anbinden des SHM\n");
+        exit(-3);
+    }printf("shmat funktioniert\n");
+    
     if(pid < 0){
         //Error by creating the childprocess
-        fprintf(stderr, "Fehler bei fork()\n");
+        fprintf(stderr, "Fehler bei fork()\n"); 
     }
     else if (pid == 0){
         //Childprocess
         //Connector process
         printf("CHILD PROCESS!!\n\n");
-        doperformConnection(sock, playid, player);
+        
+        doperformConnection(sock, gameid, playerid, current_game);
+        printf("Gamename: %s, ", current_game->name);
+        printf("Playernummer: %d, ", current_game->player_number);
+        printf("Playeranzahl: %d, ", current_game->player_count);
+        printf("ThinkerID: %i, ", current_game->thinkerID);
+        printf("ConnectorID: %d\n\n", current_game->connectorID);
+
+        //*shmdata = *current_game;
+        
         startConnector(sock);
     }
     else{
@@ -85,5 +115,7 @@ int main(int argc, char *argv[]) {
         printf("Father PROCESS!!\n\n");
     }
 
+    shmdt(shmdata);
+    free(current_game);
     return EXIT_SUCCESS;
 }

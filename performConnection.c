@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-//header fuer socket#include <sys/types.h>
+//header fuer socket
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -53,7 +54,7 @@ int makeConnection(game_config game_conf){
     return sock;
 }
 
-void doperformConnection(int *sock, char gameid[], int player){
+void doperformConnection(int *sock, char gameid[], int player, game *current_game){
     //printf("Chat\n\n\n");
     char *buffer; // = (char*) malloc(sizeof(char) * BUF);
     ssize_t size;
@@ -80,21 +81,50 @@ void doperformConnection(int *sock, char gameid[], int player){
 
     //Client wird nach gewuenschter Spielernummer gefragt + Antwort
     myread(sock, buffer);
-    myread(sock, buffer);
-    //mywrite(sock,playerNr);
+    char *game_name = myread(sock, buffer);
+    strncpy(current_game->name, game_name+2, strlen(game_name)-(3*sizeof(char)));
+
     mywrite(sock, playerNr);
     
     //Server schickt die eigene Mitspielernummer + Name
-    myread(sock, buffer);
+    char * current_player = myread(sock, buffer);
+    current_game->player_number = atoi(current_player+5);
+    
 
     //Server schickt die Mitgliederanzahl
     char *total = myread(sock, buffer);
     int count = atoi(total+8);
+    current_game->player_count = count;
+    
+    printf("starting while loop..., count: %d\n", count);
+    int a = 0;
+    struct player enemies[count];
+    while(a < count - 1){
+        printf("doing loop %d...\n", a);    
+        char* enemy = myread(sock, buffer);
+        printf("enemy: %s", enemy);
 
+        enemies[a].number = atoi(enemy+2);
+        printf("nummer %d\n", enemies[a].number);
 
-    while(count-1){
-        count--;
-        myread(sock, buffer);
+        char* name = calloc(BUF, sizeof(char));
+        int i = 0;
+        enemy += 4;
+        while(*enemy != ' '){
+            i++;
+            sprintf(name, "%c", *enemy);
+            //name++ = *enemy;
+            enemy++;
+        }
+        printf("parsed Name: %s\n", name);
+        enemies[a].name = name;
+        
+        //strncpy(enemies[a].name, enemy+4, strlen(enemy)-(5*sizeof(char)));
+        enemies[a].registered = atoi(enemy+4+10);
+        printf("isRegistered: %d\n", enemies[a].registered);
+        a++;
+        
+        //count--;
     }
 
     char *end = myread(sock, buffer);
@@ -104,6 +134,7 @@ void doperformConnection(int *sock, char gameid[], int player){
     }
     
     //free(total);
+
 }
 
 char* myread(int *sock, char *buffer) {
