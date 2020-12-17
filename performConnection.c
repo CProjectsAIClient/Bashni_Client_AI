@@ -54,7 +54,7 @@ int makeConnection(game_config game_conf){
     return sock;
 }
 
-void doperformConnection(int *sock, char gameid[], int player, game *current_game){
+void doperformConnection(int *sock, char gameid[], int player, game *current_game, struct player* enemy_list){
     //printf("Chat\n\n\n");
     char *buffer; // = (char*) malloc(sizeof(char) * BUF);
     ssize_t size;
@@ -96,37 +96,37 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
     int count = atoi(total+8);
     current_game->player_count = count;
     
-    printf("starting while loop..., count: %d\n", count);
     int a = 0;
     struct player enemies[count];
     while(a < count - 1){
-        printf("doing loop %d...\n", a);    
+        //Player info lesen
         char* enemy = myread(sock, buffer);
-        printf("enemy: %s", enemy);
-
         enemies[a].number = atoi(enemy+2);
-        printf("nummer %d\n", enemies[a].number);
-
-        char* name = calloc(BUF, sizeof(char));
+        
+        //Name2 array definieren und enemy auf den ersten Buchstabe setzen
+        char name2[BUF];
         int i = 0;
         enemy += 4;
-        while(*enemy != ' '){
-            i++;
-            sprintf(name, "%c", *enemy);
-            //name++ = *enemy;
+        
+        //Name finden und speichern
+        char current;
+        current = *enemy;
+        while (current != ' ') {
+            name2[i++] = current;
             enemy++;
-        }
-        printf("parsed Name: %s\n", name);
-        enemies[a].name = name;
+            current = *enemy;
+        } 
         
-        //strncpy(enemies[a].name, enemy+4, strlen(enemy)-(5*sizeof(char)));
-        enemies[a].registered = atoi(enemy+4+10);
-        printf("isRegistered: %d\n", enemies[a].registered);
+        //Name der Struct zuweisen
+        enemies[a].name = name2;
+        enemies[a].registered = atoi(enemy+1);
+        
         a++;
-        
-        //count--;
     }
 
+    enemy_list = enemies;
+
+    //Fehlermeldungen
     char *end = myread(sock, buffer);
     if (*end != '+') {
         printf("Fehler in der Prolog Phase!");
@@ -170,4 +170,6 @@ void mywrite(int *sock, char *buffer){
     send(*sock, buff,strlen(buff), 0);
     printf("C: %s", buff);
 }
+
+//37u67wcmcka0n
 

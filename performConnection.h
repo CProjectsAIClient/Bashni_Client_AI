@@ -27,6 +27,6 @@ typedef struct player {
 
 int makeConnection(game_config config);
 
-void doperformConnection(int *sock, char *gameid, int player, game *current_game);
+void doperformConnection(int *sock, char *gameid, int player, game *current_game, struct player* player_list);
 
 #endif

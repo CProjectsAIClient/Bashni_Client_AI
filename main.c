@@ -27,24 +27,21 @@ int main(int argc, char *argv[]) {
         switch(c){
             case 'g':
                 gameid = optarg;
-                printf("reading g in getopt\n");
                 break;
             case 'p':
                 playerid = atoi(optarg);
-                printf("reading p in getopt\n");
                 break;
             case 'c':
                 konfig = optarg;
-                printf("reading c in getopt\n");
                 break;
             case ':':
-                printf("Wert fehlt fuer g oder p\n");
+                printf("Wert fehlt fuer g, c oder p!\n");
                 break;
             case '?':
                 printf("Falsches Argument oder Aehnliches...\n");
                 break;
             default:
-                printf("Irgendwas laeuft schief bei getopt\n");
+                printf("Irgendwas laeuft schief bei getopt!\n");
                 break;
         }
     }
@@ -67,42 +64,53 @@ int main(int argc, char *argv[]) {
    
     //Erstellen eines SHM-Bereichs
     int memory_id = shmget(IPC_PRIVATE, sizeof(game), IPC_CREAT | 0666);
-    if(memory_id == -1){
+    if (memory_id == -1) {
         printf("Fehler beim Erstellen des SHM\n");
         exit(-2);
-    }printf("shmget funktioniert\n");
+    }
+    printf("shmget funktioniert\n");
 
     //Erstellen eines weiteren Prozesses
     pid_t pid;
     pid = fork();
     
     void *shmdata = shmat(memory_id,NULL,0);
-    if(shmdata == (void *) -1){ //(char *)-1
+    if (shmdata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM\n");
         exit(-3);
-    }printf("shmat funktioniert\n");
+    }
+    printf("shmat funktioniert\n");
     
-    if(pid < 0){
+    if (pid < 0) {
         //Error by creating the childprocess
         fprintf(stderr, "Fehler bei fork()\n"); 
-    }
-    else if (pid == 0){
+    } else if (pid == 0){
         //Childprocess
         //Connector process
         printf("CHILD PROCESS!!\n\n");
         
-        doperformConnection(sock, gameid, playerid, current_game);
+        struct player* enemies = malloc(sizeof(player));
+        doperformConnection(sock, gameid, playerid, current_game, enemies);
         printf("Gamename: %s, ", current_game->name);
         printf("Playernummer: %d, ", current_game->player_number);
         printf("Playeranzahl: %d, ", current_game->player_count);
         printf("ThinkerID: %i, ", current_game->thinkerID);
         printf("ConnectorID: %d\n\n", current_game->connectorID);
 
-        //*shmdata = *current_game;
+        printf("shmdata %s", shmdata);
+
+        //shmdata = current_game;
+        //current_game = shmdata;
+        memcpy(shmdata, current_game->name, 100*sizeof(char));
+        
+        memcpy(shmdata+1, current_game->player_number, sizeof(int));
+        memcpy(shmdata+2, current_game->player_count, sizeof(int));
+        memcpy(shmdata+3, current_game->thinkerID, sizeof(int));
+        memcpy(shmdata+4, current_game->connectorID, sizeof(int));
         
         startConnector(sock);
-    }
-    else{
+        free(enemies);
+    } else {
         //Parentprocess
         //Thinker process
         startThinker();
@@ -113,8 +121,22 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         printf("Father PROCESS!!\n\n");
+
+        //game* current_game = shmdata;
+        // char *name = (char*) shmdata;
+        // int nummer = *(int*) (shmdata+1);
+        // int anzahl = *(int*)(shmdata+2);
+        // int thinker = *(int*)(shmdata + 3);
+        // int conn = *(int*)(shmdata + 4);
+        // printf("Gamename: %s, ", *name);
+        // printf("Playernummer: %d, ", nummer);
+        // printf("Playeranzahl: %d, ", anzahl);
+        // printf("ThinkerID: %i, ", thinker);
+        // printf("ConnectorID: %d\n\n", conn);
+
     }
 
+    
     shmdt(shmdata);
     free(current_game);
     return EXIT_SUCCESS;
