@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
     
     void *shmdata = shmat(memory_id,NULL,0);
 
-    if (shmdata == (void *) -1) { //(char *)-1
+    if(shmdata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM\n");
         exit(-3);
     }
