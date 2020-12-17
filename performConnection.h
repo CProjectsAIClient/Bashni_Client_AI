@@ -1,11 +1,12 @@
 #ifndef performConnection
 #define performConnection
+#define BUF1 128
 
 #include "config.h"
 
 typedef struct game {
     //Name des Spiels zB Bashni
-    char* name;
+    char name[BUF1];
     //Nummer des zugewiesenen Spielers
     int player_number;
     //Anzahl der Spieler innerhalb des Spiels
@@ -20,7 +21,7 @@ typedef struct player {
     //Nummer des Spielers vom Server
     int number;
     //Name des Spielers vom Server
-    char* name;
+    char name[BUF1];
     //1 für einen registrierten Spieler, 0 ansonsten
     int registered;
 } player;

@@ -82,7 +82,17 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
     //Client wird nach gewuenschter Spielernummer gefragt + Antwort
     myread(sock, buffer);
     char *game_name = myread(sock, buffer);
-    strncpy(current_game->name, game_name+2, strlen(game_name)-(3*sizeof(char)));
+
+    //Name finden und speichern
+    int j = 0;
+    char current2;
+    game_name += 2;
+    current2 = *game_name;
+    while (current2 != '\n') {
+        current_game->name[j++] = current2;
+        game_name++;
+        current2 = *game_name;
+    } 
 
     mywrite(sock, playerNr);
     
@@ -104,7 +114,7 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
         enemies[a].number = atoi(enemy+2);
         
         //Name2 array definieren und enemy auf den ersten Buchstabe setzen
-        char name2[BUF];
+        //char name2[BUF];
         int i = 0;
         enemy += 4;
         
@@ -112,13 +122,13 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
         char current;
         current = *enemy;
         while (current != ' ') {
-            name2[i++] = current;
+            enemies[a].name[i++] = current;
             enemy++;
             current = *enemy;
         } 
         
         //Name der Struct zuweisen
-        enemies[a].name = name2;
+        //enemies[a].name = name2;
         enemies[a].registered = atoi(enemy+1);
         
         a++;

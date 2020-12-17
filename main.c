@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     pid = fork();
     
     void *shmdata = shmat(memory_id,NULL,0);
+
     if (shmdata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM\n");
         exit(-3);
@@ -97,19 +98,19 @@ int main(int argc, char *argv[]) {
         printf("ThinkerID: %i, ", current_game->thinkerID);
         printf("ConnectorID: %d\n\n", current_game->connectorID);
 
-        printf("shmdata %s", shmdata);
+        printf("shmdata %s\n", (char * ) shmdata);
 
         //shmdata = current_game;
         //current_game = shmdata;
-        memcpy(shmdata, current_game->name, 100*sizeof(char));
+        memcpy(shmdata, current_game, sizeof(game));
+
+        printf("shmdata %s\n", (char * ) shmdata);
         
-        memcpy(shmdata+1, current_game->player_number, sizeof(int));
-        memcpy(shmdata+2, current_game->player_count, sizeof(int));
-        memcpy(shmdata+3, current_game->thinkerID, sizeof(int));
-        memcpy(shmdata+4, current_game->connectorID, sizeof(int));
+
         
         startConnector(sock);
         free(enemies);
+      
     } else {
         //Parentprocess
         //Thinker process
@@ -122,17 +123,12 @@ int main(int argc, char *argv[]) {
         }
         printf("Father PROCESS!!\n\n");
 
-        //game* current_game = shmdata;
-        // char *name = (char*) shmdata;
-        // int nummer = *(int*) (shmdata+1);
-        // int anzahl = *(int*)(shmdata+2);
-        // int thinker = *(int*)(shmdata + 3);
-        // int conn = *(int*)(shmdata + 4);
-        // printf("Gamename: %s, ", *name);
-        // printf("Playernummer: %d, ", nummer);
-        // printf("Playeranzahl: %d, ", anzahl);
-        // printf("ThinkerID: %i, ", thinker);
-        // printf("ConnectorID: %d\n\n", conn);
+        game *current_game = shmdata;
+        printf("Gamename: %s, ", current_game->name);
+        printf("Playernummer: %d, ", current_game->player_number);
+        printf("Playeranzahl: %d, ", current_game->player_count);
+        printf("ThinkerID: %i, ", current_game->thinkerID);
+        printf("ConnectorID: %d\n\n", current_game->connectorID);
 
     }
 
