@@ -22,7 +22,7 @@ clean:
 	rm -f $(OBJS) $(OUT)
 
 play:
-	./sysprak-client -g $(GAME_ID) -p $(PLAYER)
+	./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)
 
 test:
-	valgrind --leak-check=full --trace-children=yes ./sysprak-client
+	valgrind --leak-check=full --trace-children=yes ./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)

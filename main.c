@@ -15,6 +15,7 @@
 #include "config.h"
 
 int main(int argc, char *argv[]) {
+    printf("\a\a\a\a\a\a\n");
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
@@ -35,7 +36,7 @@ int main(int argc, char *argv[]) {
                 konfig = optarg;
                 break;
             case ':':
-                printf("Wert fehlt fuer g, c oder p!\n");
+                printf("Wert fehlt fuer g, c oder p❤!\n");
                 break;
             case '?':
                 printf("Falsches Argument oder Aehnliches...\n");
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
 
     //filedeskriptor erstellen
     int* sock = NULL;
-    sock = calloc(1, sizeof(int));
+    sock = malloc(sizeof(int));
     *sock = makeConnection(game_conf);
 
     game *current_game = malloc(sizeof(game));
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]) {
     } else if (pid == 0){
         //Childprocess
         //Connector process
-        printf("CHILD PROCESS!!\n\n");
+        printf("\a\t--- 🧒 CHILD PROCESS [Connector]: ---\n\n");
         
         struct player* enemies = malloc(sizeof(player));
         doperformConnection(sock, gameid, playerid, current_game, enemies);
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]) {
         printf("ThinkerID: %i, ", current_game->thinkerID);
         printf("ConnectorID: %d\n\n", current_game->connectorID);
 
-        printf("shmdata %s\n", (char * ) shmdata);
+        printf("shmdata %s\n", (char * ) shmdata);//koennte gefaehrlich sein bei valgrind
 
         //shmdata = current_game;
         //current_game = shmdata;
@@ -110,10 +111,12 @@ int main(int argc, char *argv[]) {
         
         startConnector(sock);
         free(enemies);
-      
+    
     } else {
         //Parentprocess
         //Thinker process
+        printf("\a\t--- 👨 Father PROCESS [Thinker]: ---\n\n");
+
         startThinker();
 
         //warten auf kindprozess
@@ -121,7 +124,6 @@ int main(int argc, char *argv[]) {
             perror("Fehler beim warten auf den Connector\n");
             exit(EXIT_FAILURE);
         }
-        printf("Father PROCESS!!\n\n");
 
         game *current_game = shmdata;
         printf("Gamename: %s, ", current_game->name);
@@ -134,6 +136,12 @@ int main(int argc, char *argv[]) {
 
     
     shmdt(shmdata);
+
+    free(game_conf.gametype);
+    free(game_conf.hostname);
+    free(sock);
     free(current_game);
     return EXIT_SUCCESS;
 }
+
+//37u67wcmcka0n

@@ -161,11 +161,11 @@ char* myread(int *sock, char *buffer) {
     buffer = b;
     //beruecksichtigt moegliche fehler
    if (b[0] == '-'){
-        printf("Es gab ein Problem...\n");
+        printf("Es gab ein Problem...😭\n");
         printf("\n bei %s\n", b);
         exit(0);
     } else {
-        printf("S: %s", b);
+        printf("🤐🍕🧷S: %s", b);
     }
 
     return buffer;
@@ -178,7 +178,7 @@ void mywrite(int *sock, char *buffer){
     sprintf(buff, "%s\n", buffer);
     //Sendet Nachricht an den Server
     send(*sock, buff,strlen(buff), 0);
-    printf("C: %s", buff);
+    printf("💻 C: %s", buff);
 }
 
 //37u67wcmcka0n
