@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-    
+
     shmdt(shmdata);
 
     free(game_conf.gametype);
