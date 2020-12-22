@@ -3,3 +3,4 @@ sysprak-client
 *.a
 *.o
 .vscode/
+custom.conf
