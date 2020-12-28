@@ -30,4 +30,6 @@ int makeConnection(game_config config);
 
 void doperformConnection(int *sock, char *gameid, int player, game *current_game, struct player* player_list);
 
+void doSpielVerlauf(int *sock, char *gameid, int player, game *current_game, int anzahl_Steine);
+
 #endif

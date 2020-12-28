@@ -61,6 +61,9 @@ int main(int argc, char *argv[]) {
     current_game->connectorID = 0;
     current_game->thinkerID   = 1;
 
+
+    //char current_game_table[100][4];
+    int anzahl_Steine = 25;
     
    
     //Erstellen eines SHM-Bereichs
@@ -93,6 +96,8 @@ int main(int argc, char *argv[]) {
         
         struct player* enemies = malloc(sizeof(player));
         doperformConnection(sock, gameid, playerid, current_game, enemies);
+        doSpielVerlauf(sock, gameid, playerid, current_game, anzahl_Steine);
+        
         printf("Gamename: %s, ", current_game->name);
         printf("Playernummer: %d, ", current_game->player_number);
         printf("Playeranzahl: %d, ", current_game->player_count);
