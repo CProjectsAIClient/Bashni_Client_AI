@@ -9,6 +9,7 @@
     #include <netdb.h>
     #include <arpa/inet.h>
     #include <stdbool.h>
+    #include <sys/epoll.h>
 
     #include "performConnection.h"
     #include "config.h"
@@ -149,81 +150,125 @@
 
 
     void doSpielVerlauf(int *sock, char gameid[], int player, game *current_game, int anzahl_Steine){
-        int anzahlSteine = 0, i = 0, continuee = 1;
+    
+        //Erstellen von epoll()
+        int epoll_fd = epoll_create1(0);
+        int running = 1, event_count, i;
+        struct epoll_event event;
+        event.events = EPOLLIN;
+        event.data.fd = 0;// hier vielleicht kommt die Pipe anstatt 0, wie unten in Zeile 165
+
+        if(epoll_fd == -1) {
+            fprintf(stderr, "Failed to create epoll file descriptor!/n");
+            exit(-1);
+        }
+        //anstatt 0 kommt die Pipe
+        int epoll_control = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, 0, &event);
+        if(epoll_control == -1){
+            fprintf(stderr, "Failed to add fd to epoll!/n");
+            exit(-1);
+        }
+
+
+
+
+        int anzahlSteine = 0, continuee = 1;
+        i = 0;
         char *buffer;
-    while(continuee){
+        while(continuee){
 
-        char *spiel_info = myread(sock, buffer);
-        if (*spiel_info != '+') {
-        printf("Fehler in der Spielverlauf Phase!");
-        exit(0);
-        }
-        //Wait Befehlsequenz
-        if(*(spiel_info+2) == 'W'){
-        mywrite(sock, "OKWAIT");
-        }
-        //Move Befehlsequenz
-        if(*(spiel_info+2) == 'M'){
-        spiel_info = myread(sock, buffer);
-
-        //lese Anzahl an Steinen
-        anzahlSteine = atoi(spiel_info + 13) + 1;
-        anzahl_Steine = anzahlSteine;
-
-        char currentBrett[anzahlSteine + 1][5];
-        i = 0;
-        while(anzahlSteine > 0){
-            spiel_info = myread(sock, buffer);
-            strcpy(currentBrett[i++], spiel_info + 2);
+            char *spiel_info = myread(sock, buffer);
+            
             if (*spiel_info != '+') {
                 printf("Fehler in der Spielverlauf Phase!");
                 exit(0);
-                }
-            anzahlSteine--; 
-        }
-        //strcpy(current_game_table, currentBrett);
-        mywrite(sock, "THINKING");
-        }
-
-        //Game or Befehlsequenz
-        if(*(spiel_info+2) == 'G')
-        {
-        //lese Anzahl an Steinen
-        anzahlSteine = atoi(spiel_info + 13) + 1;
-        anzahl_Steine = anzahlSteine;
-
-        char currentBrett[anzahlSteine + 1][5];
-        i = 0;
-        while(anzahlSteine > 0){
-            spiel_info = myread(sock, buffer);
-            strcpy(currentBrett[i++], spiel_info + 2);
-            if (*spiel_info != '+') {
-                printf("Fehler in der Spielverlauf Phase!");
-                exit(0);
-                }
-            anzahlSteine--; 
-        }
-        //strcpy(current_game_table, currentBrett);
-        
-        //lese den Gewinner
-        int nr_spieler = current_game->player_count;
-        char whoWonGame[nr_spieler + 1][20];
-
-        i=0;
-        while(nr_spieler > 0){
-            spiel_info = myread(sock, buffer);
-            strncpy(whoWonGame[i], spiel_info + 2, 7);
-            if(*(spiel_info + 13) == 'Y'){
-                strcat(whoWonGame[i], " is the winner!"); 
             }
-            else{
-                strcat(whoWonGame[i], " has lost!");    
+
+            //Wait Befehlsequenz
+            if(*(spiel_info+2) == 'W'){
+                mywrite(sock, "OKWAIT");
+                //ich bin nicht sicher, ob man epoll() so implementiert und verwendet. Wir sollen uns das auch zusammen anschauen.
+                while(running){
+                    epoll_wait(epoll_fd, &event, sizeof(event), 3000);
+                    spiel_info = myread(sock, buffer);
+                    if(*spiel_info == -1){
+                        printf("HELLO thERE< FEhler!");
+                        exit(10);
+                    }
+                }
             }
-            i++;
-            printf("%s/n", whoWonGame[i-1]);
+
+            //Move Befehlsequenz
+            if(*(spiel_info+2) == 'M'){
+            spiel_info = myread(sock, buffer);
+
+            //lese Anzahl an Steinen
+            anzahlSteine = atoi(spiel_info + 13) + 1;
+            anzahl_Steine = anzahlSteine;
+
+            //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
+            char currentBrett[anzahlSteine + 1][5];
+            i = 0;
+
+            //lese die Steinpositionen und speichere sie
+            while(anzahlSteine > 0){
+                spiel_info = myread(sock, buffer);
+                strcpy(currentBrett[i++], spiel_info + 2);
+                if (*spiel_info != '+') {
+                    printf("Fehler in der Spielverlauf Phase!");
+                    exit(0);
+                    }
+                anzahlSteine--; 
+            }
+
+            //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
+            mywrite(sock, "THINKING");
         }
-        continuee = 0;
-        }
+
+            //Game or Befehlsequenz
+            if(*(spiel_info+2) == 'G')
+            {
+                //lese Anzahl an Steinen
+                anzahlSteine = atoi(spiel_info + 13) + 1;
+                anzahl_Steine = anzahlSteine;
+
+                //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
+                char currentBrett[anzahlSteine + 1][5];
+                i = 0;
+
+                //lese die Steinpositionen und speichere sie
+                while(anzahlSteine > 0){
+                    spiel_info = myread(sock, buffer);
+                    strcpy(currentBrett[i++], spiel_info + 2);
+                    if (*spiel_info != '+') {
+                        printf("Fehler in der Spielverlauf Phase!");
+                        exit(0);
+                        }
+                    anzahlSteine--; 
+            }
+
+
+            //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
+            int nr_spieler = current_game->player_count;
+            char whoWonGame[nr_spieler + 1][20];
+
+            i=0;
+            while(nr_spieler > 0){
+                spiel_info = myread(sock, buffer);
+                strncpy(whoWonGame[i], spiel_info + 2, 7);
+                if(*(spiel_info + 13) == 'Y'){
+                    strcat(whoWonGame[i], " is the winner!"); 
+                }
+                else{
+                    strcat(whoWonGame[i], " has lost!");    
+                }
+                i++;
+                printf("%s/n", whoWonGame[i-1]);
+            }
+
+            // if the game has ended, end the while loop
+            continuee = 0;
+            }
     }
 }
 
