@@ -21,6 +21,8 @@
 
     void mywrite(int * sock, char *buffer);
 
+    void save_brett_in_matrix(char color, int column, int row);
+
     int makeConnection(game_config game_conf){
         //socket anlegen
         int sock;
@@ -212,7 +214,7 @@
             //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
             char currentBrett[anzahlSteine + 1][5];
             i = 0;
-            struct brett brett_table[anzahl_Steine];
+            // struct brett brett_table[anzahl_Steine];
 
             //lese die Steinpositionen und speichere sie
 
@@ -220,11 +222,7 @@
             while(anzahlSteine > 0){
                 spiel_info = myread(sock, buffer);
                 strcpy(currentBrett[i], spiel_info + 2);
-
-
-                brett_table->color = currentBrett[i][0];
-                brett_table->column = currentBrett[i][2] - 'A'; // um die Spalte zu erzeugen, macht man column + 'A'
-                brett_table->row = currentBrett[i][3] - '0';
+                save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
                 
                 if (*spiel_info != '+') {
                     printf("Fehler in der Spielverlauf Phase!");
@@ -303,12 +301,10 @@
                         break;
 
                 }
-                // spiel_info = myread(sock, buffer);
+                spiel_info = myread(sock, buffer);
             }
     }
 }
-
-
 
     char* myread(int *sock, char *buffer) {
         //Erstellt char Speicher mit Größe BUF zum Lesen vom Server
@@ -343,5 +339,18 @@
         send(*sock, buff,strlen(buff), 0);
         printf("💻 C: %s", buff);
     }
+
+    void save_brett_in_matrix(char color, int column, int row){
+        int i = 0;
+        while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
+            printf(" this is i:  %d  ", i);
+            i++;
+        }
+
+        my_brett[row][column][i] = color;
+        printf("my_brett[%i][%i] has %c  \n", row, column, my_brett[row][column][i]);
+    }
+
+
 
     //2rayczltiahmv

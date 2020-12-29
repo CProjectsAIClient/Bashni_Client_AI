@@ -4,7 +4,7 @@
 
 #include "config.h"
 
-//char brett[200][10];
+char my_brett[9][9][13];
 
 typedef struct game {
     //Name des Spiels zB Bashni
@@ -28,14 +28,14 @@ typedef struct player {
     int registered;
 } player;
 
-typedef struct brett {
-    //Farbe des Steins
-    char color;
-    //Column A,B,C,D,E,F,G,H
-    int column;
-    //Row 1,2,3,4,5,6,7,8
-    int row;
-} brett;
+// typedef struct brett {
+//     //Farbe des Steins
+//     char color;
+//     //Column A,B,C,D,E,F,G,H
+//     int column;
+//     //Row 1,2,3,4,5,6,7,8
+//     int row;
+// } brett;
 
 int makeConnection(game_config config);
 
