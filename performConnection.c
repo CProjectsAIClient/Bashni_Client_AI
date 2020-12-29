@@ -109,6 +109,18 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
     int a = 0;
     struct player enemies[count];
     while(a < count - 1){
+        // int player_id, ready;
+        // char player_name[120];
+
+        // char * readed_player = myread(sock, buffer);
+        // sscanf(readed_player, "+ %i %s %i", &player_id, player_name, &ready);
+        // printf("PlayerId: %i, Name: %s, Bereit: %i\n", player_id, player_name, ready);
+        
+        // enemies[a].number = player_id;
+        // strcpy(enemies[a].name, player_name);
+        // //enemies[a].name = player_name;
+        // enemies[a].registered = ready;
+
         //Player info lesen
         char* enemy = myread(sock, buffer);
         enemies[a].number = atoi(enemy+2);
@@ -126,7 +138,7 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
             enemy++;
             current = *enemy;
         } 
-        
+
         //Name der Struct zuweisen
         //enemies[a].name = name2;
         enemies[a].registered = atoi(enemy+1);
@@ -165,7 +177,7 @@ char* myread(int *sock, char *buffer) {
         printf("\n bei %s\n", b);
         exit(0);
     } else {
-        printf("🤐🍕🧷S: %s", b);
+        printf("🍕 S: %s", b);
     }
 
     return buffer;
@@ -181,5 +193,5 @@ void mywrite(int *sock, char *buffer){
     printf("💻 C: %s", buff);
 }
 
-//37u67wcmcka0n
+//3ua6fayf5s7qz
 
