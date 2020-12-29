@@ -97,6 +97,8 @@ int main(int argc, char *argv[]) {
         struct player* enemies = malloc(sizeof(player));
         doperformConnection(sock, gameid, playerid, current_game, enemies);
         doSpielVerlauf(sock, gameid, playerid, current_game, anzahl_Steine);
+
+
         
         printf("Gamename: %s, ", current_game->name);
         printf("Playernummer: %d, ", current_game->player_number);
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]) {
 
         //warten auf kindprozess
         if ((waitpid(pid,NULL,0)) < 0){
-            perror("Fehler beim warten auf den Connector\n");
+            perror("Fehler beim Warten auf den Connector\n");
             exit(EXIT_FAILURE);
         }
 
@@ -149,4 +151,4 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-//37u67wcmcka0n
+//0nmcyuoebxit7

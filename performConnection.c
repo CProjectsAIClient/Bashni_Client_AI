@@ -150,7 +150,8 @@
 
 
     void doSpielVerlauf(int *sock, char gameid[], int player, game *current_game, int anzahl_Steine){
-    
+
+
         //Erstellen von epoll()
         int epoll_fd = epoll_create1(0);
         int running = 1, event_count, i;
@@ -175,6 +176,7 @@
         int anzahlSteine = 0, continuee = 1;
         i = 0;
         char *buffer;
+        int ok = 1;
         while(continuee){
 
             char *spiel_info = myread(sock, buffer);
@@ -187,15 +189,16 @@
             //Wait Befehlsequenz
             if(*(spiel_info+2) == 'W'){
                 mywrite(sock, "OKWAIT");
-                //ich bin nicht sicher, ob man epoll() so implementiert und verwendet. Wir sollen uns das auch zusammen anschauen.
-                while(running){
-                    epoll_wait(epoll_fd, &event, sizeof(event), 3000);
-                    spiel_info = myread(sock, buffer);
-                    if(*spiel_info == -1){
-                        printf("HELLO thERE< FEhler!");
-                        exit(10);
-                    }
-                }
+                // //ich bin nicht sicher, ob man epoll() so implementiert und verwendet. Wir sollen uns das auch zusammen anschauen.
+                // while(running){
+                //     epoll_wait(epoll_fd, &event, sizeof(event), 3000);
+                //     spiel_info = myread(sock, buffer);
+                //     if(*spiel_info == -1){
+                //         printf("HELLO thERE< FEhler!");
+                //         exit(10);
+                //     }
+                //     break;
+                // }
             }
 
             //Move Befehlsequenz
@@ -209,17 +212,28 @@
             //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
             char currentBrett[anzahlSteine + 1][5];
             i = 0;
+            struct brett brett_table[anzahl_Steine];
 
             //lese die Steinpositionen und speichere sie
+
+            //spiel_info = myread(sock, buffer);
             while(anzahlSteine > 0){
                 spiel_info = myread(sock, buffer);
-                strcpy(currentBrett[i++], spiel_info + 2);
+                strcpy(currentBrett[i], spiel_info + 2);
+
+
+                brett_table->color = currentBrett[i][0];
+                brett_table->column = currentBrett[i][2] - 'A'; // um die Spalte zu erzeugen, macht man column + 'A'
+                brett_table->row = currentBrett[i][3] - '0';
+                
                 if (*spiel_info != '+') {
                     printf("Fehler in der Spielverlauf Phase!");
                     exit(0);
                     }
                 anzahlSteine--; 
+                i++;
             }
+            //strcpy(brett, currentBrett);
 
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
             mywrite(sock, "THINKING");
@@ -269,6 +283,28 @@
             // if the game has ended, end the while loop
             continuee = 0;
             }
+            
+            //fiktiver Spielzug - OKTHINK
+            if(*(spiel_info+2) == 'O'){
+                switch(ok){
+                    case 1: 
+                        mywrite(sock, "PLAY G3:H4");
+                        ok++;
+                        break;
+                    case 2: 
+                        mywrite(sock, "PLAY C3:D4");
+                        ok++;
+                        break;
+                    case 3:
+                        mywrite(sock, "PLAY D4:B6");
+                        ok++;
+                        break;
+                    default:
+                        break;
+
+                }
+                // spiel_info = myread(sock, buffer);
+            }
     }
 }
 
@@ -308,5 +344,4 @@
         printf("💻 C: %s", buff);
     }
 
-    //37u67wcmcka0n
-
+    //2rayczltiahmv
