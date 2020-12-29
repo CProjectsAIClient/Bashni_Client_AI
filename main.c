@@ -16,6 +16,10 @@
 
 int main(int argc, char *argv[]) {
     printf("\a\a\a\a\a\a\n");
+    //int a = checkWait("WAIT"); muss jetzt mit socketID aufgerufen werden
+    int b = checkMove("GAME");
+    int d = checkGameover("GAMEOVER");
+    printf("Check: %i %i %i\n", a, b ,d);
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
@@ -106,10 +110,26 @@ int main(int argc, char *argv[]) {
         memcpy(shmdata, current_game, sizeof(game));
 
         printf("shmdata %s\n", (char * ) shmdata);
+        //Spielfeldgroese erfahre einfach zur probe eine Groesse hier...
+        int sizeofField = 9;
+        //Spielfeld
+        char field [sizeofField] [sizeofField];
+
+        //SHM fuer Spielfeld erstellen
+        current_game->shmFieldID = shmget(IPC_PRIVATE, sizeof(field), IPC_CREAT | 0666);
+
+        void *shmConnectordata = shmat(current_game->shmFieldID,NULL,0);
+
+        if(shmConnectordata == (void *) -1) { //(char *)-1
+            printf("Fehler beim Anbinden des SHM fuer das Feld\n");
+            exit(-3);
+        }
+        printf("shmat im Connector funktioniert\n");
         
 
         
         startConnector(sock);
+        shmdt(shmConnectordata);
         free(enemies);
     
     } else {
@@ -131,6 +151,16 @@ int main(int argc, char *argv[]) {
         printf("Playeranzahl: %d, ", current_game->player_count);
         printf("ThinkerID: %i, ", current_game->thinkerID);
         printf("ConnectorID: %d\n\n", current_game->connectorID);
+
+        void *shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
+
+    if(shmThinkerdata == (void *) -1) { //(char *)-1
+        printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
+        exit(-3);
+    }
+    printf("shmat im Thinker funktioniert\n");
+
+     shmdt(shmThinkerdata);   
 
     }
 

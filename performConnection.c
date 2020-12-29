@@ -20,6 +20,13 @@ char* myread(int *sock, char *buffer);
 
 void mywrite(int * sock, char *buffer);
 
+//werte der flags fuer game auslesen
+int checkWait(char*buffer,int * sock);
+void answerWait(int * sock);
+int checkMove(char*buffer);
+int checkGameover(char*buffer);
+int checkQuit(char*buffer);
+
 int makeConnection(game_config game_conf){
     //socket anlegen
     int sock;
@@ -180,6 +187,59 @@ void mywrite(int *sock, char *buffer){
     send(*sock, buff,strlen(buff), 0);
     printf("💻 C: %s", buff);
 }
+
+//Testet ob die Nachricht wait ist und Antwortet dem Server falls ja + Rueckgabe der Flag
+int checkWait(char*buffer,int * sock){
+    char waitarr [] = "wait";
+    char WaitarrGR [] = "WAIT";
+    for (int i = 0; i <4; i++){
+        if ( buffer[i]!= waitarr[i] && (buffer[i]!= WaitarrGR[i])){
+            return 0;
+        } 
+    }else 
+    answerWait(sock);
+    return 1;
+
+}
+//Testet ob die Nachricht move ist, Rueckgabe der Flag
+int checkMove(char*buffer){
+     char movearr [] = "move";
+     char MOVEarrGR [] = "MOVE";
+    for (int i = 0; i <4; i++){
+        if ( (buffer[i]!= movearr[i]) && (buffer[i]!= MOVEarrGR[i])){
+            return 0;
+        } 
+    }else return 1;
+
+}
+
+//Testet ob die Nachricht gameover ist, Rueckgabe der Flag
+int checkGameover(char*buffer){
+    char Gameoverarr [] = "gameover";
+     char GameoverarrGR [] = "GAMEOVER";
+    for (int i = 0; i < 8; i++){
+        if ( (buffer[i]!= Gameoverarr[i]) && (buffer[i]!= GameoverarrGR[i])){
+            return 0;
+        } 
+    }else return 1;
+}
+
+void answerWait(int * sock){
+    char * answerWait = "C: OKWAIT";
+    mywrite(sock, answerWait);
+
+}
+
+int checkQuit(char*buffer){
+     char quitarr [] = "quit";
+     char QUITarrGR [] = "QUIT";
+    for (int i = 0; i <4; i++){
+        if ( (buffer[i]!= quitarr[i]) && (buffer[i]!= QUITarrGR[i])){
+            return 0;
+        } 
+    }else return 1;
+}
+
 
 //37u67wcmcka0n
 
