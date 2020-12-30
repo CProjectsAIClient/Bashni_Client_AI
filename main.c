@@ -12,14 +12,13 @@
 #include "thinker.h"
 #include "connector.h"
 #include "config.h"
-#include "config.h"
 
 int main(int argc, char *argv[]) {
     printf("\a\a\a\a\a\a\n");
     //int a = checkWait("WAIT"); muss jetzt mit socketID aufgerufen werden
-    int b = checkMove("GAME");
-    int d = checkGameover("GAMEOVER");
-    printf("Check: %i %i %i\n", a, b ,d);
+    //int b = checkMove("GAME");
+    //int d = checkGameover("GAMEOVER");
+    //printf("Check: %i %i %i\n",  b ,d);
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
@@ -100,7 +99,7 @@ int main(int argc, char *argv[]) {
         
         struct player* enemies = malloc(sizeof(player));
         doperformConnection(sock, gameid, playerid, current_game, enemies);
-        doSpielVerlauf(sock, gameid, playerid, current_game, anzahl_Steine);
+        doSpielVerlauf(sock, playerid, current_game, anzahl_Steine);
 
 
         
@@ -181,4 +180,4 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-//0nmcyuoebxit7
+//3vhxf2pg6851t

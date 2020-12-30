@@ -2,9 +2,10 @@
 #define performConnection
 #define BUF1 128
 
-#include "config.h"
+#define GAME_QUIT 0
+#define GAME_MOVE 1
 
-char my_brett[9][9][13];
+#include "config.h"
 
 typedef struct game {
     //Name des Spiels zB Bashni
@@ -17,14 +18,8 @@ typedef struct game {
     int thinkerID;
     //Prozess ID des Connectors
     int connectorID;
-    //flag fuer GAMEOVER 1 fuer ja 0 fuer nein
-    int gameoverFlag;
-    //flag fuer WAIT 1 fuer Kommando kam 0 fuer Kommando kam nicht
-    int waitFlag;
-    //flag fuer MOVE 1 fuer Kommando kam 0 fuer Kommando kam nicht
-    int moveFlag;
-    //flag fuer Spielbeendung
-    int quitFlag;
+    //flag fuer QUIT 0 und fuer Move 1
+    int flag;
     //Adresse des zweiten SHM mit dem Spielfeld
     int shmFieldID;
 } game;
@@ -51,14 +46,8 @@ int makeConnection(game_config config);
 
 void doperformConnection(int *sock, char *gameid, int player, game *current_game, struct player* player_list);
 
-<<<<<<< HEAD
-void doSpielVerlauf(int *sock, char *gameid, int player, game *current_game, int anzahl_Steine);
-=======
-int checkWait(char*buffer,int * sock);
-void answerWait(int * sock);
-int checkMove(char*buffer);
-int checkGameover(char*buffer);
-int checkQuit(char*buffer);
->>>>>>> Andrea--zweites-Shm-+-Aenderungen-an-Struktur
+char* myread(int *sock, char *buffer);
+
+void mywrite(int *sock, char *buffer);
 
 #endif
