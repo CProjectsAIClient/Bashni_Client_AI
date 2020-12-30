@@ -20,12 +20,15 @@ char* myread(int *sock, char *buffer);
 
 void mywrite(int * sock, char *buffer);
 
+void save_brett_in_matrix(char color, int column, int row);
+
 //werte der flags fuer game auslesen
 int checkWait(char*buffer,int * sock);
 void answerWait(int * sock);
 int checkMove(char*buffer);
 int checkGameover(char*buffer);
 int checkQuit(char*buffer);
+
 
 int makeConnection(game_config game_conf){
     //socket anlegen
@@ -34,143 +37,124 @@ int makeConnection(game_config game_conf){
         printf("Socket Fehler: %d!\n", sock);
     }
 
-    #include "performConnection.h"
-    #include "config.h"
+    //verbindungsadresse eingeben
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(game_conf.portnumber);
 
-    #define BUF 1024
+    //Wandelt Hostname in Adresse um;
+    struct hostent *hp;
+    hp = gethostbyname(game_conf.hostname);
+    if(hp == NULL) {
+        fprintf(stderr,"%s unknown host.\n",game_conf.hostname);
+        exit(2);
+    }
+    // copies the internet address to server address
+    bcopy(hp->h_addr_list[0], &addr.sin_addr, hp->h_length);
 
-    //liest werte vom Server
-    char* myread(int *sock, char *buffer);
+    int connected;
+    //Verbindung aufbauen
+    printf("Verbinde zum Gameserver...\n");
+    if((connected = connect(sock, (struct sockaddr*) &addr, sizeof(addr))) == 0){
+        printf("Verbindung aufgebaut!\n");
+    } else {
+        printf("Verbindungsfehler: %i\n", connected);
+    }
 
-    void mywrite(int * sock, char *buffer);
+    return sock;
+}
 
-    void save_brett_in_matrix(char color, int column, int row);
+void doperformConnection(int *sock, char gameid[], int player, game *current_game, struct player* enemy_list){
+    //printf("Chat\n\n\n");
+    char *buffer; // = (char*) malloc(sizeof(char) * BUF);
+    ssize_t size;
 
-    int makeConnection(game_config game_conf){
-        //socket anlegen
-        int sock;
-        if((sock = socket(AF_INET,SOCK_STREAM,0)) <= 0){
-            printf("Socket Fehler: %d!\n", sock);
-        }
+    //Ausgaben des Client in der Kommunikation mit dem Server
+    //Ausgabe der GameID des Client
+    char gameId[18];//14 fuer gameID und 3 fuer "ID " und 1 fuer \n
+    sprintf(gameId, "ID %s", gameid);
+    //printf("GameID: %s\n", gameId);
 
-        //verbindungsadresse eingeben
-        struct sockaddr_in addr;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(game_conf.portnumber);
+    //Ausgeben der Player ID fuer den Server
+    char playerNr[10];
+    sprintf(playerNr, "PLAYER %d", player);
+    //printf("PlayerID: %s\n\n\n\n", playerNr);
+
+    //client wird nach Version gefragt + rueckgabe der Version
+    myread(sock, buffer);
+    mywrite(sock,"VERSION 2.3");
+
+    //Client wird nach SpielID gefragt + rueckgabe
+    myread(sock, buffer);
+    mywrite(sock,gameId);
     
-        //Wandelt Hostname in Adresse um;
-        struct hostent *hp;
-        hp = gethostbyname(game_conf.hostname);
-        if(hp == NULL) {
-            fprintf(stderr,"%s unknown host.\n",game_conf.hostname);
-            exit(2);
-        }
-        // copies the internet address to server address
-        bcopy(hp->h_addr_list[0], &addr.sin_addr, hp->h_length);
 
-        int connected;
-        //Verbindung aufbauen
-        printf("Verbinde zum Gameserver...\n");
-        if((connected = connect(sock, (struct sockaddr*) &addr, sizeof(addr))) == 0){
-            printf("Verbindung aufgebaut!\n");
-        } else {
-            printf("Verbindungsfehler: %i\n", connected);
-        }
+    //Client wird nach gewuenschter Spielernummer gefragt + Antwort
+    myread(sock, buffer);
+    char *game_name = myread(sock, buffer);
 
-        return sock;
-    }
-
-    void doperformConnection(int *sock, char gameid[], int player, game *current_game, struct player* enemy_list){
-        //printf("Chat\n\n\n");
-        char *buffer; // = (char*) malloc(sizeof(char) * BUF);
-        ssize_t size;
-
-        //Ausgaben des Client in der Kommunikation mit dem Server
-        //Ausgabe der GameID des Client
-        char gameId[18];//14 fuer gameID und 3 fuer "ID " und 1 fuer \n
-        sprintf(gameId, "ID %s", gameid);
-        //printf("GameID: %s\n", gameId);
-
-        //Ausgeben der Player ID fuer den Server
-        char playerNr[10];
-        sprintf(playerNr, "PLAYER %d", player);
-        //printf("PlayerID: %s\n\n\n\n", playerNr);
-
-        //client wird nach Version gefragt + rueckgabe der Version
-        myread(sock, buffer);
-        mywrite(sock,"VERSION 2.3");
-
-        //Client wird nach SpielID gefragt + rueckgabe
-        myread(sock, buffer);
-        mywrite(sock,gameId);
-        
-
-        //Client wird nach gewuenschter Spielernummer gefragt + Antwort
-        myread(sock, buffer);
-        char *game_name = myread(sock, buffer);
-
-        //Name finden und speichern
-        int j = 0;
-        char current2;
-        game_name += 2;
+    //Name finden und speichern
+    int j = 0;
+    char current2;
+    game_name += 2;
+    current2 = *game_name;
+    while (current2 != '\n') {
+        current_game->name[j++] = current2;
+        game_name++;
         current2 = *game_name;
-        while (current2 != '\n') {
-            current_game->name[j++] = current2;
-            game_name++;
-            current2 = *game_name;
-        } 
+    } 
 
-        mywrite(sock, playerNr);
-        
-        //Server schickt die eigene Mitspielernummer + Name
-        char * current_player = myread(sock, buffer);
-        current_game->player_number = atoi(current_player+5);
-        
+    mywrite(sock, playerNr);
+    
+    //Server schickt die eigene Mitspielernummer + Name
+    char * current_player = myread(sock, buffer);
+    current_game->player_number = atoi(current_player+5);
+    
 
-        //Server schickt die Mitgliederanzahl
-        char *total = myread(sock, buffer);
-        int count = atoi(total+8);
-        current_game->player_count = count;
+    //Server schickt die Mitgliederanzahl
+    char *total = myread(sock, buffer);
+    int count = atoi(total+8);
+    current_game->player_count = count;
+    
+    int a = 0;
+    struct player enemies[count];
+    while(a < count - 1){
+        //Player info lesen
+        char* enemy = myread(sock, buffer);
+        enemies[a].number = atoi(enemy+2);
         
-        int a = 0;
-        struct player enemies[count];
-        while(a < count - 1){
-            //Player info lesen
-            char* enemy = myread(sock, buffer);
-            enemies[a].number = atoi(enemy+2);
-            
-            //Name2 array definieren und enemy auf den ersten Buchstabe setzen
-            //char name2[BUF];
-            int i = 0;
-            enemy += 4;
-            
-            //Name finden und speichern
-            char current;
+        //Name2 array definieren und enemy auf den ersten Buchstabe setzen
+        //char name2[BUF];
+        int i = 0;
+        enemy += 4;
+        
+        //Name finden und speichern
+        char current;
+        current = *enemy;
+        while (current != ' ') {
+            enemies[a].name[i++] = current;
+            enemy++;
             current = *enemy;
-            while (current != ' ') {
-                enemies[a].name[i++] = current;
-                enemy++;
-                current = *enemy;
-            } 
-            
-            //Name der Struct zuweisen
-            //enemies[a].name = name2;
-            enemies[a].registered = atoi(enemy+1);
-            
-            a++;
-        }
-
-        enemy_list = enemies;
-
-        //Fehlermeldungen
-        char *end = myread(sock, buffer);
-        if (*end != '+') {
-            printf("Fehler in der Prolog Phase!");
-            exit(0);
-        }
+        } 
         
-        //free(total);    
+        //Name der Struct zuweisen
+        //enemies[a].name = name2;
+        enemies[a].registered = atoi(enemy+1);
+        
+        a++;
     }
+
+    enemy_list = enemies;
+
+    //Fehlermeldungen
+    char *end = myread(sock, buffer);
+    if (*end != '+') {
+        printf("Fehler in der Prolog Phase!");
+        exit(0);
+    }
+    
+    //free(total);    
+}
 
 
 
@@ -247,6 +231,8 @@ void doSpielVerlauf(int *sock, char gameid[], int player, game *current_game, in
                 strcpy(currentBrett[i], spiel_info + 2);
                 save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
                 
+
+
                 if (*spiel_info != '+') {
                     printf("Fehler in der Spielverlauf Phase!");
                     exit(0);
@@ -254,7 +240,8 @@ void doSpielVerlauf(int *sock, char gameid[], int player, game *current_game, in
                 anzahlSteine--; 
                 i++;
             }
-            //strcpy(brett, currentBrett);
+            
+            
 
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
             mywrite(sock, "THINKING");
@@ -300,7 +287,7 @@ void doSpielVerlauf(int *sock, char gameid[], int player, game *current_game, in
                 printf("%s/n", whoWonGame[i-1]);
             }
 
-            
+
 
             // if the game has ended, end the while loop
             continuee = 0;
