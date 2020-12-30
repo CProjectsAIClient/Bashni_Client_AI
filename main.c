@@ -13,8 +13,10 @@
 #include "connector.h"
 #include "config.h"
 
+void printWelcome();
+
 int main(int argc, char *argv[]) {
-    printf("\a\a\a\a\a\a\n");
+    printWelcome();
     //int a = checkWait("WAIT"); muss jetzt mit socketID aufgerufen werden
     //int b = checkMove("GAME");
     //int d = checkGameover("GAMEOVER");
@@ -178,6 +180,17 @@ int main(int argc, char *argv[]) {
     free(sock);
     free(current_game);
     return EXIT_SUCCESS;
+}
+
+void printWelcome() {
+    printf("\n /$$$$$$$                      /$$                 /$$          /$$$$$$  /$$ /$$                       /$$    ");
+    printf("\n| $$__  $$                    | $$                |__/         /$$__  $$| $$|__/                      | $$    ");
+    printf("\n| $$  \\ $$  /$$$$$$   /$$$$$$$| $$$$$$$  /$$$$$$$  /$$        | $$  \\__/| $$ /$$  /$$$$$$  /$$$$$$$  /$$$$$$  ");
+    printf("\n| $$$$$$$  |____  $$ /$$_____/| $$__  $$| $$__  $$| $$ /$$$$$$| $$      | $$| $$ /$$__  $$| $$__  $$|_  $$_/  ");
+    printf("\n| $$__  $$  /$$$$$$$|  $$$$$$ | $$  \\ $$| $$  \\ $$| $$|______/| $$      | $$| $$| $$$$$$$$| $$  \\ $$  | $$    ");
+    printf("\n| $$  \\ $$ /$$__  $$ \\____  $$| $$  | $$| $$  | $$| $$        | $$    $$| $$| $$| $$_____/| $$  | $$  | $$ /$$");
+    printf("\n| $$$$$$$/|  $$$$$$$ /$$$$$$$/| $$  | $$| $$  | $$| $$        |  $$$$$$/| $$| $$|  $$$$$$$| $$  | $$  |  $$$$/");
+    printf("\n|_______/  \\_______/|_______/ |__/  |__/|__/  |__/|__/         \\______/ |__/|__/ \\_______/|__/  |__/   \\___/  \n\n");
 }
 
 //3vhxf2pg6851t

@@ -1,15 +1,15 @@
 #ifndef performConnection
 #define performConnection
-#define BUF1 128
-
-#define GAME_QUIT 0
-#define GAME_MOVE 1
 
 #include "config.h"
 
+#define BUF 1024
+#define GAME_QUIT 0
+#define GAME_MOVE 1
+
 typedef struct game {
     //Name des Spiels zB Bashni
-    char name[BUF1];
+    char name[BUF];
     //Nummer des zugewiesenen Spielers
     int player_number;
     //Anzahl der Spieler innerhalb des Spiels
@@ -28,7 +28,7 @@ typedef struct player {
     //Nummer des Spielers vom Server
     int number;
     //Name des Spielers vom Server
-    char name[BUF1];
+    char name[BUF];
     //1 für einen registrierten Spieler, 0 ansonsten
     int registered;
 } player;
@@ -46,7 +46,7 @@ int makeConnection(game_config config);
 
 void doperformConnection(int *sock, char *gameid, int player, game *current_game, struct player* player_list);
 
-char* myread(int *sock, char *buffer);
+char* myread(int *sock, char* buffer);
 
 void mywrite(int *sock, char *buffer);
 

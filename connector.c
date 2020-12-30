@@ -28,8 +28,6 @@ int checkGameover(char*buffer);
 int checkQuit(char*buffer);
 
 void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl_Steine) {
-
-
     //Erstellen von epoll()
     int epoll_fd = epoll_create1(0);
     int running = 1, event_count, i;
@@ -53,7 +51,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
 
     int anzahlSteine = 0, continuee = 1;
     i = 0;
-    char *buffer;
+    char *buffer = malloc(BUF * sizeof(char));
     int ok = 1;
     while(continuee){
 
@@ -180,6 +178,8 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'", spiel_info);
         }
     }
+
+    free(buffer);
 }
 
 void getPositions(game game1,struct player* enemies_list){

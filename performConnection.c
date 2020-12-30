@@ -13,13 +13,10 @@
 #include "performConnection.h"
 #include "config.h"
 
-#define BUF 1024
-
-//liest werte vom Server
-char* myread(int *sock, char *buffer);
-
+//liest Werte vom Server
+char* myread(int *sock, char* buffer);
+//schreibt Werte zum Server
 void mywrite(int * sock, char *buffer);
-
 
 int makeConnection(game_config game_conf){
     //socket anlegen
@@ -56,9 +53,7 @@ int makeConnection(game_config game_conf){
 }
 
 void doperformConnection(int *sock, char gameid[], int player, game *current_game, struct player* enemy_list){
-    //printf("Chat\n\n\n");
-    char *buffer; // = (char*) malloc(sizeof(char) * BUF);
-    ssize_t size;
+    char* buffer = malloc(BUF * sizeof(char));
 
     //Ausgaben des Client in der Kommunikation mit dem Server
     //Ausgabe der GameID des Client
@@ -71,65 +66,50 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
     sprintf(playerNr, "PLAYER %d", player);
     //printf("PlayerID: %s\n\n\n\n", playerNr);
 
-    //client wird nach Version gefragt + rueckgabe der Version
+    //Server schickt Willkommensnachticht
     myread(sock, buffer);
+
+    //Client schickt Versionsnummer
     mywrite(sock,"VERSION 2.3");
-
-    //Client wird nach SpielID gefragt + rueckgabe
+    //Server validiert Versionsnummer
     myread(sock, buffer);
+
+    //Client schickt Game ID des gewünschten Spiels
     mywrite(sock,gameId);
-    
-
-    //Client wird nach gewuenschter Spielernummer gefragt + Antwort
+    //Server schickt Spieletyp (Bashni)
     myread(sock, buffer);
-    char *game_name = myread(sock, buffer);
+    //Gamename einlesen und in game struct abspeichern
+    sscanf(myread(sock, buffer), "+ %[^\n]", current_game->name);
 
-    //Name finden und speichern
-    int j = 0;
-    char current2;
-    game_name += 2;
-    current2 = *game_name;
-    while (current2 != '\n') {
-        current_game->name[j++] = current2;
-        game_name++;
-        current2 = *game_name;
-    } 
-
+    //Client schickt Nummer des Spielers, den er übernhemen möchte
     mywrite(sock, playerNr);
     
     //Server schickt die eigene Mitspielernummer + Name
-    char * current_player = myread(sock, buffer);
-    current_game->player_number = atoi(current_player+5);
+    sscanf(myread(sock, buffer), "+ YOU %i", &current_game->player_number);
     
-
     //Server schickt die Mitgliederanzahl
-    char *total = myread(sock, buffer);
-    int count = atoi(total+8);
-    current_game->player_count = count;
+    sscanf(myread(sock, buffer), "+ TOTAL %i", &current_game->player_count);
     
+    //Gegner abspeichern
     int a = 0;
-    struct player enemies[count];
-    while(a < count - 1){
+    struct player enemies[current_game->player_count];
+    while(a < (current_game->player_count - 1)){
         //Player info lesen
         char* enemy = myread(sock, buffer);
+
+        //Gegner Spielernummer abspeichern
         enemies[a].number = atoi(enemy+2);
-        
-        //Name2 array definieren und enemy auf den ersten Buchstabe setzen
-        //char name2[BUF];
-        int i = 0;
+
+        //Gegner Spielername abspeichern
+        int enemy_length = strlen(enemy);
         enemy += 4;
-        
-        //Name finden und speichern
-        char current;
-        current = *enemy;
-        while (current != ' ') {
-            enemies[a].name[i++] = current;
+        //enemy_length -4 (wegen Spielernummer '+ 1 ' am Anfang) und -2 (wegen Bereit flag ' 1' am Ende)
+        for (int i = 0; i < (enemy_length - 4 - 2); i++) {
+            enemies[a].name[i] = *enemy;
             enemy++;
-            current = *enemy;
-        } 
+        }
         
-        //Name der Struct zuweisen
-        //enemies[a].name = name2;
+        //Gegner Bereit abspeichern
         enemies[a].registered = atoi(enemy+1);
         
         a++;
@@ -137,36 +117,31 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
 
     enemy_list = enemies;
 
-    //Fehlermeldungen
-    char *end = myread(sock, buffer);
-    if (*end != '+') {
-        printf("Fehler in der Prolog Phase!");
-        exit(0);
-    }
-    
-    //free(total);    
+    //Ende der Gegner
+    myread(sock, buffer);
 }
 
-char* myread(int *sock, char *buffer) {
+char* myread(int *sock, char* buffer) {
     //Erstellt char Speicher mit Größe BUF zum Lesen vom Server
-    char b[BUF] = "";
     int i=0;
     char current;
     recv(*sock, &current, 1, 0);
     //liest Nachricht in einzelnen char ein
     while (current != '\n') {
-        b[i++] = current;
+        buffer[i++] = current;
         recv(*sock, &current, 1, 0);
     };
+    buffer[i] = '\0';
     
-    buffer = b;
     //beruecksichtigt moegliche fehler
-    if (b[0] == '-'){
-        printf("Es gab ein Problem...😭\n");
-        printf("\n bei %s\n", b);
+    if (buffer[0] == '-'){
+        printf("\n============================\n");
+        printf("Es gab ein Problem 😭 (Der Server gibt einen Fehler aus)...\n");
+        printf("Nachricht: '%s'\n", buffer);
+        printf("============================\n\n");
         exit(0);
     } else {
-        printf("🍕S: %s\n", b);
+        printf("🍕S: %s\n", buffer);
     }
 
     return buffer;
@@ -181,8 +156,3 @@ void mywrite(int *sock, char *buffer){
     send(*sock, buff,strlen(buff), 0);
     printf("💻 C: %s", buff);
 }
-
-
-//37u67wcmcka0n
-
-    //2rayczltiahmv
