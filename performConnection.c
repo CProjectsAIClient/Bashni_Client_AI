@@ -225,7 +225,7 @@ int checkGameover(char*buffer){
 }
 
 void answerWait(int * sock){
-    char * answerWait = "C: OKWAIT";
+    char * answerWait = "OKWAIT";
     mywrite(sock, answerWait);
 
 }
@@ -235,9 +235,9 @@ int checkQuit(char*buffer){
      char QUITarrGR [] = "QUIT";
     for (int i = 0; i <4; i++){
         if ( (buffer[i]!= quitarr[i]) && (buffer[i]!= QUITarrGR[i])){
-            return 0;
+            return 1;
         } 
-    }else return 1;
+    }else return 0;
 }
 
 
