@@ -20,6 +20,7 @@ void startConnector(int *sock) {
 }
 
 void save_brett_in_matrix(char color, int column, int row);
+void reinitialize_brett_with_null();
 
 //werte der flags fuer game auslesen
 int checkWait(char*buffer,int * sock);
@@ -89,6 +90,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             i = 0;
 
             //spiel_brett auf 0 setzen
+            reinitialize_brett_with_null();// eingentlich mit '-'
 
             //spiel_info = myread(sock, buffer);
             while(anzahlSteine > 0){
@@ -97,7 +99,6 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
                 save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
 
                 //an thinker schicken
-
 
                 if (*spiel_info != '+') {
                     printf("Fehler in der Spielverlauf Phase!");
@@ -190,6 +191,16 @@ void sendPostitions(){
     
 }
 
+void reinitialize_brett_with_null(){
+    for(int i=0;i<=8;i++){
+        for(int j=0;j<=8;j++){
+            for (int x=0;x<=12;x++){
+                my_brett[i][j][x] = '-';
+            }
+        }
+    }
+}
+
 void save_brett_in_matrix(char color, int column, int row){
     int i = 0;
     while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
@@ -198,7 +209,6 @@ void save_brett_in_matrix(char color, int column, int row){
     }
 
     my_brett[row][column][i] = color;
-    //printf("my_brett[%i][%i] has %c  \n", row, column, my_brett[row][column][i]);
 }
 
 
