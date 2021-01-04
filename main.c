@@ -131,25 +131,10 @@ int main(int argc, char *argv[]) {
 
         printf("shmdata %s\n", (char * ) shmdata);
         //Spielfeldgroese erfahre einfach zur probe eine Groesse hier...
-        int sizeofField = 9;
-        //Spielfeld
-        char field [sizeofField] [sizeofField];
-
-        //SHM fuer Spielfeld erstellen
-        current_game->shmFieldID = shmget(IPC_PRIVATE, sizeof(field), IPC_CREAT | 0666);
-
-        void *shmConnectordata = shmat(current_game->shmFieldID,NULL,0);
-
-        if(shmConnectordata == (void *) -1) { //(char *)-1
-            printf("Fehler beim Anbinden des SHM fuer das Feld\n");
-            exit(-3);
-        }
-        printf("shmat im Connector funktioniert\n");
         
 
         
         startConnector(*sock, pipe_fd[0]);
-        shmdt(shmConnectordata);
         free(enemies);
     
     } else {
@@ -164,11 +149,7 @@ int main(int argc, char *argv[]) {
 
         startThinker();
 
-        //warten auf kindprozess
-        if ((waitpid(pid,NULL,0)) < 0){
-            perror("Fehler beim Warten auf den Connector\n");
-            exit(EXIT_FAILURE);
-        }
+        
 
         game *current_game = shmdata;
         printf("Gamename: %s, ", current_game->name);
@@ -185,7 +166,13 @@ int main(int argc, char *argv[]) {
     }
     printf("shmat im Thinker funktioniert\n");
 
-     shmdt(shmThinkerdata);   
+    shmdt(shmThinkerdata);  
+
+    //warten auf kindprozess
+    if ((waitpid(pid,NULL,0)) < 0){
+        perror("Fehler beim Warten auf den Connector\n");
+        //exit(EXIT_FAILURE);
+    } 
 
     }
 

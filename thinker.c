@@ -5,19 +5,45 @@
 
 void signal_handler(int signal_key);
 
+void reinitialize_brett_with_null(){
+    for(int i=0;i<=8;i++){
+        for(int j=0;j<=8;j++){
+            for (int x=0;x<=12;x++){
+                my_brett[i][j][x] = '-';
+            }
+        }
+    }
+}
+
+void save_brett_in_matrix(char color, int column, int row){
+    int i = 0;
+    while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
+        printf(" this is i:  %d  ", i);
+        i++;
+    }
+
+    my_brett[row][column][i] = color;
+
+    //reinitialize_brett_with_null();
+    //save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
+    //
+}
+
+
 void startThinker() {
   printf("\nprint1\n");
-  struct sigaction sa = {0};
-  sa.sa_handler = &signal_handler;
-  sigaction(SIGUSR1, &sa, NULL);
+
+  signal(SIGUSR1, signal_handler);
+
   printf("\nprint2\n");
 
 }
 
+
 void signal_handler(int signal_key) {
-  
-  printf("\n\n\n\nincoming signal  \n\n\n\n");
-  
+    printf("\n\n\n\nincoming signal %i \n\n\n\n", signal_key);  
+    //start komplizierte KI Berechnung
+    //read shm
 }
 
 void printfield(char print[9][9][13]) {
