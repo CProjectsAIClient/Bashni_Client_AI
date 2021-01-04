@@ -6,19 +6,18 @@
 void signal_handler(int signal_key);
 
 void startThinker() {
-  signal(SIGUSR1, signal_handler);
+  printf("\nprint1\n");
+  struct sigaction sa = {0};
+  sa.sa_handler = &signal_handler;
+  sigaction(SIGUSR1, &sa, NULL);
+  printf("\nprint2\n");
+
 }
 
 void signal_handler(int signal_key) {
-  printf("\n\nincoming signal ?");
-  switch (signal_key) {
-    case SIGUSR1:
-      printf("incoming signal SIGUSR1!!!!!\n\n");
-      //read shm...
-      break;
-    default:
-      break;
-  }
+  
+  printf("\n\n\n\nincoming signal  \n\n\n\n");
+  
 }
 
 void printfield(char print[9][9][13]) {
@@ -51,7 +50,7 @@ void printfield(char print[9][9][13]) {
                 count = i + 64;
                 printf("%c%i: ", count, z);
                 for(int j=0; j<13; j++) {
-                    if (print[z][i][j] == 'w') {
+                    if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }
                 }
@@ -67,7 +66,7 @@ void printfield(char print[9][9][13]) {
                 count = i + 64;
                 printf("%c%i: ", count, z);
                 for(int j=0; j<13; j++) {
-                    if (print[z][i][j] == 'b') {
+                    if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }
                 }

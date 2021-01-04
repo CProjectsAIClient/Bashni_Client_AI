@@ -157,6 +157,8 @@ int main(int argc, char *argv[]) {
         //Thinker process
         printf("\a\t--- 👨 Father PROCESS [Thinker]: ---\n\n");
 
+        
+
         //Pipe Leseseite schließen
         close(pipe_fd[0]);
 

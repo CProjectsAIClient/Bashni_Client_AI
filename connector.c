@@ -144,12 +144,11 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
 
             //Spielbrett ausgeben
             printfield(my_brett);
+            
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
             mywrite(sock, "THINKING");
 
-    
-
-            kill(1, SIGUSR1);
+            kill(getppid(), SIGUSR1);
             
         } else if(strncmp(spiel_info, "+ GAMEOVER", 10) == 0) {
             //lese Anzahl an Steinen
