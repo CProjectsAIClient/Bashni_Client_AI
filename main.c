@@ -79,6 +79,15 @@ int main(int argc, char *argv[]) {
     }
     printf("shmget funktioniert\n");
 
+    //Erstellen der Pipe
+    int pipe_fd[2];
+
+    if (pipe(pipe_fd) < 0) {
+        perror("Fehler beim Erstellen der Pipe");
+        exit(-2);
+    }
+
+
     //Erstellen eines weiteren Prozesses
     pid_t pid;
     pid = fork();
@@ -98,6 +107,9 @@ int main(int argc, char *argv[]) {
         //Childprocess
         //Connector process
         printf("\a\t--- 🧒 CHILD PROCESS [Connector]: ---\n\n");
+
+        //Pipe Schreibseite schließen
+        close(pipe_fd[1]);
         
         struct player* enemies = malloc(sizeof(player));
         doperformConnection(sock, gameid, playerid, current_game, enemies);
@@ -136,7 +148,7 @@ int main(int argc, char *argv[]) {
         
 
         
-        startConnector(sock);
+        startConnector(*sock, pipe_fd[0]);
         shmdt(shmConnectordata);
         free(enemies);
     
@@ -144,6 +156,9 @@ int main(int argc, char *argv[]) {
         //Parentprocess
         //Thinker process
         printf("\a\t--- 👨 Father PROCESS [Thinker]: ---\n\n");
+
+        //Pipe Leseseite schließen
+        close(pipe_fd[0]);
 
         startThinker();
 
@@ -181,7 +196,7 @@ int main(int argc, char *argv[]) {
     free(current_game);
     return EXIT_SUCCESS;
 }
-
+//fancy :)
 void printWelcome() {
     printf("\n /$$$$$$$                      /$$                 /$$          /$$$$$$  /$$ /$$                       /$$    ");
     printf("\n| $$__  $$                    | $$                |__/         /$$__  $$| $$|__/                      | $$    ");

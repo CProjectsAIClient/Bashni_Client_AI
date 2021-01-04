@@ -4,7 +4,7 @@
 
 char my_brett[9][9][13];
 
-void startConnector(int *sock);
+void startConnector(int fd_sock, int fd_pipe);
 
 void doSpielVerlauf(int *sock, int player, game *current_game, int anzahl_Steine);
 
