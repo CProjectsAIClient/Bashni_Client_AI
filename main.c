@@ -112,7 +112,13 @@ int main(int argc, char *argv[]) {
         close(pipe_fd[1]);
         
         struct player* enemies = malloc(sizeof(player));
+
+        struct game* customshmdata = (game*) shmdata;
+        *customshmdata = *current_game;
+
         doperformConnection(sock, gameid, playerid, current_game, enemies);
+        startConnector(*sock, pipe_fd[0]);
+
         doSpielVerlauf(sock, playerid, current_game, anzahl_Steine);
 
 
@@ -127,14 +133,8 @@ int main(int argc, char *argv[]) {
 
         //shmdata = current_game;
         //current_game = shmdata;
-        memcpy(shmdata, current_game, sizeof(game));
-
-        printf("shmdata %s\n", (char * ) shmdata);
-        //Spielfeldgroese erfahre einfach zur probe eine Groesse hier...
-        
 
         
-        startConnector(*sock, pipe_fd[0]);
         free(enemies);
     
     } else {
@@ -142,13 +142,12 @@ int main(int argc, char *argv[]) {
         //Thinker process
         printf("\a\t--- 👨 Father PROCESS [Thinker]: ---\n\n");
 
-        
-
         //Pipe Leseseite schließen
         close(pipe_fd[0]);
 
-        startThinker();
 
+        
+        startThinker(shmdata);
         
 
         game *current_game = shmdata;
@@ -158,21 +157,15 @@ int main(int argc, char *argv[]) {
         printf("ThinkerID: %i, ", current_game->thinkerID);
         printf("ConnectorID: %d\n\n", current_game->connectorID);
 
-        void *shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
+        
 
-    if(shmThinkerdata == (void *) -1) { //(char *)-1
-        printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
-        exit(-3);
-    }
-    printf("shmat im Thinker funktioniert\n");
+        
 
-    shmdt(shmThinkerdata);  
-
-    //warten auf kindprozess
-    if ((waitpid(pid,NULL,0)) < 0){
-        perror("Fehler beim Warten auf den Connector\n");
-        //exit(EXIT_FAILURE);
-    } 
+        //warten auf kindprozess
+        if ((waitpid(pid,NULL,0)) < 0){
+            perror("Fehler beim Warten auf den Connector\n");
+            //exit(EXIT_FAILURE);
+        } 
 
     }
 

@@ -63,6 +63,8 @@ int checkMove(char*buffer);
 int checkGameover(char*buffer);
 int checkQuit(char*buffer);
 
+void saveAndSendBrett(int* sock, void* shmAddress, int feldgr);
+
 void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl_Steine) {
 
     int anzahlSteine = 0, continuee = 1, i = 0, ok = 1;
@@ -77,15 +79,10 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
         printf("Fehler beim ersten + MOVE %s\n", buffer);
     }
 
-    int feldgr;
-    sscanf(myread(sock, buffer), "+ PIECESLIST %i", &feldgr);
-
-    //int sizeofField = 9;
-    //Spielfeld
-    char field [feldgr] [5];
+    sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
 
     //SHM fuer Spielfeld erstellen
-    current_game->shmFieldID = shmget(IPC_PRIVATE, sizeof(field), IPC_CREAT | 0666);
+    current_game->shmFieldID = shmget(IPC_PRIVATE, sizeof(char) * (current_game->pieces_count) * 5, IPC_CREAT | 0666);
 
     void *shmConnectordata = shmat(current_game->shmFieldID,NULL,0);
 
@@ -95,25 +92,8 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
     }
     printf("shmat im Connector funktioniert\n");
 
-    char currentBrett[feldgr + 1][5];
-    //lese die 24 Steine
-    printf("\n%i felder total\n", feldgr);
-    while(feldgr>0){
-        spiel_info = myread(sock, buffer);
-        strcpy(currentBrett[i], spiel_info + 2);
-        i++;
-        feldgr--;
-    }
-
-
-    //lese ENDPIECELIST
-    myread(sock, buffer);
-
-    //printfield(my_brett); kommt in thinker
-    //thinking schicken
-    mywrite(sock, "THINKING");
-    kill(getppid(), SIGUSR1);  
-
+    
+    saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count);
 
 
 
@@ -133,44 +113,19 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             
         }
         else if(strncmp(spiel_info, "+ MOVE", 6) == 0){
-            spiel_info = myread(sock, buffer);
+            // spiel_info = myread(sock, buffer);
 
             //lese Anzahl an Steinen
-            anzahlSteine = atoi(spiel_info + 13) + 1;
-            anzahl_Steine = anzahlSteine;
+            //anzahlSteine = atoi(spiel_info + 13) + 1;
+            //anzahl_Steine = anzahlSteine;
 
-            //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
-            char currentBrett[anzahlSteine + 1][5];
-            i = 0;
+            sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
 
-            //spiel_brett auf 0 setzen
-            reinitialize_brett_with_null();// eingentlich mit '-'
+            current_game->flag = GAME_MOVE;//1
 
-            i = 0;
-            //spiel_info = myread(sock, buffer);
-            while(anzahlSteine > 0){
-                spiel_info = myread(sock, buffer);
-                strcpy(currentBrett[i], spiel_info + 2);
-                save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
-
-                //an thinker schicken
-
-                if (*spiel_info != '+') {
-                    printf("Fehler in der Spielverlauf Phase!");
-                    exit(0);
-                    }
-                anzahlSteine--; 
-                i++;
-            }
-
-            //Spielbrett ausgeben
-            printfield(my_brett);// kommt in thinker
-            
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
-            mywrite(sock, "THINKING");
-
-            kill(getppid(), SIGUSR1);
-            
+            saveAndSendBrett(sock,shmConnectordata,current_game->pieces_count);
+                        
         } 
         else if(strncmp(spiel_info, "+ GAMEOVER", 10) == 0) {
             //lese Anzahl an Steinen
@@ -181,16 +136,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             char currentBrett[anzahlSteine + 1][5];
             i = 0;
 
-            //lese die Steinpositionen und speichere sie
-            while(anzahlSteine > 0){
-                spiel_info = myread(sock, buffer);
-                strcpy(currentBrett[i++], spiel_info + 2);
-                if (*spiel_info != '+') {
-                    printf("Fehler in der Spielverlauf Phase!");
-                    exit(0);
-                    }
-                anzahlSteine--; 
-            }
+
 
 
             //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
@@ -214,8 +160,12 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             //lese QUIT
             spiel_info = myread(sock, buffer);
 
+            //current_game->flag = GAME_QUIT;
+
             // if the game has ended, end the while loop
             continuee = checkQuit(spiel_info);
+
+            current_game->flag = continuee;//0
         } 
         else if(strncmp(spiel_info, "+ OKTHINK", 9) == 0){
             switch(ok){
@@ -250,6 +200,35 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
 
 void getPositions(game game1,struct player* enemies_list){
 
+}
+
+void saveAndSendBrett(int* sock, void* shmAddress, int feldgr) {
+    char* buffer = malloc(BUF * sizeof(char));
+    
+    char currentBrett[feldgr][5];
+    //lese die 24 Steine
+    printf("\n%i felder total\n", feldgr);
+    int i = 0;
+    while(feldgr>0){
+        myread(sock, buffer);
+        strcpy(currentBrett[i], buffer + 2);
+        i++;
+        feldgr--;
+    }
+    //lese ENDPIECELIST
+    myread(sock, buffer);
+
+    //currentBrett in SHM schreiben
+    memcpy(shmAddress, currentBrett, sizeof(char) * feldgr * 5);
+    
+    
+    //printfield(my_brett); kommt in thinker
+    
+    //thinking schicken
+    mywrite(sock, "THINKING");
+    kill(getppid(), SIGUSR1);  
+
+    free(buffer);
 }
 
 void sendPostitions(){

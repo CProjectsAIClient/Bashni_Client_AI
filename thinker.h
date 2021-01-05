@@ -3,7 +3,7 @@
 
 char my_brett[9][9][13];
 
-void startThinker();
+void startThinker(void * shmdata1);
 
 void printfield(char print[9][9][13]);
 

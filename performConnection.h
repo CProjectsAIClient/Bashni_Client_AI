@@ -22,6 +22,8 @@ typedef struct game {
     int flag;
     //Adresse des zweiten SHM mit dem Spielfeld
     int shmFieldID;
+    //Anzahl der Steine
+    int pieces_count;
 } game;
 
 typedef struct player {
