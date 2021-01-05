@@ -23,9 +23,10 @@ void reinitialize_brett_with_null(){
 void save_brett_in_matrix(char color, int column, int row){
     int i = 0;
     while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
-        printf(" this is i:  %d  ", i);
+        //printf("Funktion save_brett_in_matrix...this is i:  %d  at   [%i][%i]\n\n", i, row, column);
         i++;
     }
+    printf("Funktion save_brett_in_matrix...this is color:  %c  at   [%i][%i]\n\n", color, row, column);
 
     my_brett[row][column][i] = color;
 
@@ -64,7 +65,7 @@ void startThinker(void * shmdata1) {
 
 
 void signal_handler(int signal_key) {
-    printf("\n\n\n\nincoming signal %i \n\n\n\n", signal_key);  
+    printf("\n\n\nincoming signal %i \n\n\n", signal_key);  
     struct game* current_game = shmdata;
     
     //memcpy(current_game, shmdata1, sizeof(game));
@@ -83,13 +84,13 @@ void signal_handler(int signal_key) {
     //struct game* current_game;
     memcpy(current_game, shmdata, sizeof(game));
 
-    printf("PiecesCount: %i\n", current_game->pieces_count);
+    printf("PiecesCount im THINKER!!!!!!: %i\n", current_game->pieces_count);
     printf("Gamename: %s, ", current_game->name);
     printf("Playernummer: %d, ", current_game->player_number);
     printf("Playeranzahl: %d, ", current_game->player_count);
     printf("ThinkerID: %i, ", current_game->thinkerID);
     printf("ConnectorID: %d\n\n", current_game->connectorID);
-    int i = 0;  
+     
 
     //spiel_info = myread(sock, buffer);
     int anzahlSteine = current_game->pieces_count;
@@ -100,20 +101,21 @@ void signal_handler(int signal_key) {
     memcpy(currentBrett, shmThinkerdata, sizeof(char) * anzahlSteine * 5);
 
 
-
+    int i = 0;
+    reinitialize_brett_with_null();
     while(anzahlSteine > 0){
-        printf("Going through Stein %i\n", i);
+        printf("Going through Stein %i, with value: %s\n", i, currentBrett[i]);
         
         // spiel_info = myread(sock, buffer);
         // strcpy(currentBrett[i], spiel_info + 2);
+        // eingentlich mit '-'
 
-        reinitialize_brett_with_null();// eingentlich mit '-'
         save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A' + 1, currentBrett[i][3] - '0');
 
         anzahlSteine--; 
         i++;
     }
-
+    
     //Spielbrett ausgeben
     printf("Printing Brett...\n");
     printfield(my_brett);// kommt in thinker

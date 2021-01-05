@@ -62,11 +62,6 @@ int main(int argc, char *argv[]) {
     sock = malloc(sizeof(int));
     *sock = makeConnection(game_conf);
 
-    game *current_game = malloc(sizeof(game));
-    current_game->connectorID = 0;
-    current_game->thinkerID   = 1;
-
-
     //char current_game_table[100][4];
     int anzahl_Steine = 25;
     
@@ -99,7 +94,7 @@ int main(int argc, char *argv[]) {
         exit(-3);
     }
     printf("shmat funktioniert\n");
-    
+
     if (pid < 0) {
         //Error by creating the childprocess
         fprintf(stderr, "Fehler bei fork()\n"); 
@@ -108,26 +103,31 @@ int main(int argc, char *argv[]) {
         //Connector process
         printf("\a\t--- 🧒 CHILD PROCESS [Connector]: ---\n\n");
 
+        game *current_game = (game*) shmdata;
+        current_game->connectorID = 0;
+        current_game->thinkerID   = 1;
+
         //Pipe Schreibseite schließen
         close(pipe_fd[1]);
         
         struct player* enemies = malloc(sizeof(player));
 
-        struct game* customshmdata = (game*) shmdata;
-        *customshmdata = *current_game;
+        //struct game* customshmdata = (game*) shmdata;
+        //*customshmdata = *current_game;
+        shmdata = (game*) shmdata;
 
-        doperformConnection(sock, gameid, playerid, current_game, enemies);
+        doperformConnection(sock, gameid, playerid, shmdata, enemies);
         startConnector(*sock, pipe_fd[0]);
 
-        doSpielVerlauf(sock, playerid, current_game, anzahl_Steine);
+        doSpielVerlauf(sock, playerid, shmdata, anzahl_Steine);
 
 
         
-        printf("Gamename: %s, ", current_game->name);
-        printf("Playernummer: %d, ", current_game->player_number);
-        printf("Playeranzahl: %d, ", current_game->player_count);
-        printf("ThinkerID: %i, ", current_game->thinkerID);
-        printf("ConnectorID: %d\n\n", current_game->connectorID);
+        // printf("Gamename: %s, ", current_game->name);
+        // printf("Playernummer: %d, ", current_game->player_number);
+        // printf("Playeranzahl: %d, ", current_game->player_count);
+        // printf("ThinkerID: %i, ", current_game->thinkerID);
+        // printf("ConnectorID: %d\n\n", current_game->connectorID);
 
         printf("shmdata %s\n", (char * ) shmdata);//koennte gefaehrlich sein bei valgrind
 
@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 
         
         free(enemies);
+        //free(current_game);
     
     } else {
         //Parentprocess
@@ -175,7 +176,7 @@ int main(int argc, char *argv[]) {
     free(game_conf.gametype);
     free(game_conf.hostname);
     free(sock);
-    free(current_game);
+    
     return EXIT_SUCCESS;
 }
 //fancy :)
