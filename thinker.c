@@ -8,6 +8,8 @@
 #include <string.h>
 
 void signal_handler(int signal_key);
+void sendToConnector(char* message);
+void think();
 
 void reinitialize_brett_with_null(){
     for(int i=0;i<=8;i++){
@@ -23,52 +25,61 @@ void reinitialize_brett_with_null(){
 void save_brett_in_matrix(char color, int column, int row){
     int i = 0;
     while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
-        //printf("Funktion save_brett_in_matrix...this is i:  %d  at   [%i][%i]\n\n", i, row, column);
         i++;
     }
     printf("Funktion save_brett_in_matrix...this is color:  %c  at   [%i][%i]\n\n", color, row, column);
 
     my_brett[row][column][i] = color;
 
-    //reinitialize_brett_with_null();
-    //save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A'+1, currentBrett[i][3] - '0');
-    //
 }
 
 void* shmdata;
 void *shmThinkerdata;
+int pipe_fd;
 
-void startThinker(void * shmdata1) {
-    // printf("Starting Thinker...\n");
-
-    // struct game* current_game;
-    // current_game = shmdata1;
-    
-    // memcpy(current_game, shmdata1, sizeof(game));
-    // shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
-
-    // if(shmThinkerdata == (void *) -1) { //(char *)-1
-    //     printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
-    //     exit(-3);
-    // }
-    // printf("shmat im Thinker funktioniert\n");
-
+void startThinker(void * shmdata1, int pipe) {
 
     shmdata = shmdata1;
-    printf("\nprint1\n");
-
+    pipe_fd = pipe;
+    
     signal(SIGUSR1, signal_handler);
-
-    printf("\nprint2\n");
-
 }
+
+int ok = 1;
+void think() {
+    switch(ok){
+        case 1: 
+            sendToConnector("PLAY G3:H4");
+            ok++;
+            break;
+        case 2: 
+            sendToConnector("PLAY C3:D4");
+            ok++;
+            break;
+        case 3:
+            sendToConnector("PLAY D4:B6");
+            ok++;
+            break;
+        default:
+            break;
+    }
+}
+
+void sendToConnector(char* message) {
+    int length = strlen(message);
+
+    if (write(pipe_fd, message, length) != length) { //In Schreibseite schreiben
+        perror("Fehler bei write()");
+        exit (-2);
+    }
+}
+
 
 
 void signal_handler(int signal_key) {
     printf("\n\n\nincoming signal %i \n\n\n", signal_key);  
     struct game* current_game = shmdata;
     
-    //memcpy(current_game, shmdata1, sizeof(game));
     shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
 
     if(shmThinkerdata == (void *) -1) { //(char *)-1
@@ -77,11 +88,6 @@ void signal_handler(int signal_key) {
     }
     printf("shmat im Thinker funktioniert\n");
 
-
-    //shmdata = shmdata1;
-
-
-    //struct game* current_game;
     memcpy(current_game, shmdata, sizeof(game));
 
     printf("PiecesCount im THINKER!!!!!!: %i\n", current_game->pieces_count);
@@ -91,25 +97,20 @@ void signal_handler(int signal_key) {
     printf("ThinkerID: %i, ", current_game->thinkerID);
     printf("ConnectorID: %d\n\n", current_game->connectorID);
      
-
-    //spiel_info = myread(sock, buffer);
     int anzahlSteine = current_game->pieces_count;
     printf("AnzahlSteine: %i\n", anzahlSteine);
 
-    //char currentBrett[][]  = *shmThinkerData;
     char currentBrett[anzahlSteine][5];
     memcpy(currentBrett, shmThinkerdata, sizeof(char) * anzahlSteine * 5);
 
 
-    int i = 0;
+    
     reinitialize_brett_with_null();
+
+    int i = 0;
     while(anzahlSteine > 0){
         printf("Going through Stein %i, with value: %s\n", i, currentBrett[i]);
         
-        // spiel_info = myread(sock, buffer);
-        // strcpy(currentBrett[i], spiel_info + 2);
-        // eingentlich mit '-'
-
         save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A' + 1, currentBrett[i][3] - '0');
 
         anzahlSteine--; 
@@ -121,7 +122,9 @@ void signal_handler(int signal_key) {
     printfield(my_brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
-    //read shm
+    if ((current_game->flag) == 1){
+        think();
+    }
 }
 
 void printfield(char print[9][9][13]) {
@@ -179,4 +182,8 @@ void printfield(char print[9][9][13]) {
         }
     }
     printf("\n");
+}
+
+void think(){
+    printf("Ich mach ja schon...");
 }

@@ -17,10 +17,7 @@ void printWelcome();
 
 int main(int argc, char *argv[]) {
     printWelcome();
-    //int a = checkWait("WAIT"); muss jetzt mit socketID aufgerufen werden
-    //int b = checkMove("GAME");
-    //int d = checkGameover("GAMEOVER");
-    //printf("Check: %i %i %i\n",  b ,d);
+
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
@@ -62,7 +59,7 @@ int main(int argc, char *argv[]) {
     sock = malloc(sizeof(int));
     *sock = makeConnection(game_conf);
 
-    //char current_game_table[100][4];
+
     int anzahl_Steine = 25;
     
    
@@ -112,8 +109,6 @@ int main(int argc, char *argv[]) {
         
         struct player* enemies = malloc(sizeof(player));
 
-        //struct game* customshmdata = (game*) shmdata;
-        //*customshmdata = *current_game;
         shmdata = (game*) shmdata;
 
         doperformConnection(sock, gameid, playerid, shmdata, enemies);
@@ -121,13 +116,6 @@ int main(int argc, char *argv[]) {
 
         doSpielVerlauf(sock, playerid, shmdata, anzahl_Steine);
 
-
-        
-        // printf("Gamename: %s, ", current_game->name);
-        // printf("Playernummer: %d, ", current_game->player_number);
-        // printf("Playeranzahl: %d, ", current_game->player_count);
-        // printf("ThinkerID: %i, ", current_game->thinkerID);
-        // printf("ConnectorID: %d\n\n", current_game->connectorID);
 
         printf("shmdata %s\n", (char * ) shmdata);//koennte gefaehrlich sein bei valgrind
 
@@ -146,28 +134,13 @@ int main(int argc, char *argv[]) {
         //Pipe Leseseite schließen
         close(pipe_fd[0]);
 
-
-        
-        startThinker(shmdata);
-        
-
-        game *current_game = shmdata;
-        printf("Gamename: %s, ", current_game->name);
-        printf("Playernummer: %d, ", current_game->player_number);
-        printf("Playeranzahl: %d, ", current_game->player_count);
-        printf("ThinkerID: %i, ", current_game->thinkerID);
-        printf("ConnectorID: %d\n\n", current_game->connectorID);
-
-        
-
-        
+        startThinker(shmdata, pipe_fd[1]);
 
         //warten auf kindprozess
         if ((waitpid(pid,NULL,0)) < 0){
             perror("Fehler beim Warten auf den Connector\n");
             //exit(EXIT_FAILURE);
-        } 
-
+        }
     }
 
 

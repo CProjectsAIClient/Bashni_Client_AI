@@ -58,16 +58,13 @@ void startConnector(int fd_sock, int fd_pipe) {
 }
 
 //werte der flags fuer game auslesen
-int checkWait(char*buffer,int * sock);
-int checkMove(char*buffer);
-int checkGameover(char*buffer);
 int checkQuit(char*buffer);
 
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game* current_game);
 
 void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl_Steine) {
 
-    int anzahlSteine = 0, continuee = 1, i = 0, ok = 1;
+    int anzahlSteine = 0, continuee = 1, i = 0;
 
     char *buffer = malloc(BUF * sizeof(char));
     char *spiel_info = malloc(BUF * sizeof(char));
@@ -170,26 +167,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             current_game->flag = continuee;//0
         } 
         else if(strncmp(spiel_info, "+ OKTHINK", 9) == 0){
-            switch(ok){
-                case 1: 
-                    mywrite(sock, "PLAY G3:H4");
-                    ok++;
-                    break;
-                case 2: 
-                    mywrite(sock, "PLAY C3:D4");
-                    ok++;
-                    break;
-                case 3:
-                    mywrite(sock, "PLAY D4:B6");
-                    ok++;
-                    break;
-                default:
-                    break;
-
-            }
             
-
-            spiel_info = myread(sock, buffer);
         } 
         else {
             printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'", spiel_info);
@@ -243,46 +221,7 @@ void sendPostitions(){
 
 
 
-//Testet ob die Nachricht wait ist und Antwortet dem Server falls ja + Rueckgabe der Flag
-int checkWait(char*buffer,int * sock){
-    char waitarr [] = "+ wait";
-    char WaitarrGR [] = "+ WAIT";
-    for (int i = 0; i <4; i++){
-        if ( buffer[i]!= waitarr[i] && (buffer[i]!= WaitarrGR[i])){
-            return 0;
-        }
-    }
-
-    char * answerWait = "OKWAIT";
-    mywrite(sock, answerWait);
-    return 1;
-}
-//Testet ob die Nachricht move ist, Rueckgabe der Flag
-int checkMove(char*buffer){
-     char movearr [] = "+ move";
-     char MOVEarrGR [] = "+ MOVE";
-    for (int i = 0; i <6; i++){
-        if ( (buffer[i]!= movearr[i]) && (buffer[i]!= MOVEarrGR[i])){
-            return 0;
-        } 
-    }
-    
-    return 1;
-}
-
-//Testet ob die Nachricht gameover ist, Rueckgabe der Flag
-int checkGameover(char*buffer){
-    char Gameoverarr [] = "+ gameover";
-     char GameoverarrGR [] = "+ GAMEOVER";
-    for (int i = 0; i < 10; i++){
-        if ( (buffer[i]!= Gameoverarr[i]) && (buffer[i]!= GameoverarrGR[i])){
-            return 0;
-        } 
-    }
-    return 1;
-}
-
-
+//Testet ob die Nachricht quit ist, Rueckgabe der Flag
 int checkQuit(char*buffer){
      char quitarr [] = "+ quit";
      char QUITarrGR [] = "+ QUIT";
