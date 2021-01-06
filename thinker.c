@@ -24,19 +24,24 @@ void reinitialize_brett_with_null(){
 
 
 void save_brett_in_matrix(char color, int column, int row){
-    int i = 0;
+    int i = 0, check = 0;
     while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
         i++;
+        check = 1;
     }
-    //printf("Funktion save_brett_in_matrix...this is color:  %c  at   [%i][%i]\n\n", color, row, column);
+    if(check == 1)
+        for(int k=i-1;k>=0;k--){
+            my_brett[row][column][k + 1] = my_brett[row][column][k];
+        }
 
-    my_brett[row][column][i] = color;
+    my_brett[row][column][0] = color;
 
 }
 
 void* shmdata;
 void *shmThinkerdata;
 int pipe_fd;
+int ok = 1;
 
 void startThinker(void * shmdata1, int pipe) {
 
@@ -46,8 +51,9 @@ void startThinker(void * shmdata1, int pipe) {
     signal(SIGUSR1, signal_handler);
 }
 
-int ok = 1;
+
 void think() {
+
     printf("Berechne Spielzug...");
     switch(ok){
         case 1: 
@@ -160,7 +166,7 @@ void printfield(char print[9][9][13]) {
             if (print[z][i][0] == 'w') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
-                for(int j=0; j<13; j++) {
+                for(int j=12; j>=0; j--) {
                     if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }
@@ -176,7 +182,7 @@ void printfield(char print[9][9][13]) {
             if (print[z][i][0] == 'b') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
-                for(int j=0; j<13; j++) {
+                for(int j=12; j>=0; j--) {
                     if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }

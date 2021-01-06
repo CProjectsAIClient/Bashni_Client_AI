@@ -169,12 +169,20 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
                 
                 //myread
             } else if (event.data.fd == pipe_fd) {
+
+                printf("going to read data from pipe\n");
+
                 //Data came from pipe (Thinker)
                 char* read_buffer = malloc(BUF * sizeof(char));
                 
-                do {
-                    read(pipe_fd, read_buffer, 1);
-                } while (*(read_buffer++) != '\0');
+                // do {
+                //     read(pipe_fd, read_buffer, 1);
+                //     printf("print_before: read_buffer: %s\n", read_buffer);
+                // } while (*(read_buffer++) != '\0');
+
+                read(pipe_fd, read_buffer, BUF * sizeof(char));
+                
+                printf("print_after: %s\n", read_buffer);
 
                 //read(pipe_fd, read_buffer, PIPE_BUF);
                 printf("read data from pipe: '%s'\n", read_buffer);
