@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <sys/shm.h>
 #include <string.h>
+#include <unistd.h>
 
 void signal_handler(int signal_key);
 void sendToConnector(char* message);
@@ -27,7 +28,7 @@ void save_brett_in_matrix(char color, int column, int row){
     while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
         i++;
     }
-    printf("Funktion save_brett_in_matrix...this is color:  %c  at   [%i][%i]\n\n", color, row, column);
+    //printf("Funktion save_brett_in_matrix...this is color:  %c  at   [%i][%i]\n\n", color, row, column);
 
     my_brett[row][column][i] = color;
 
@@ -47,6 +48,7 @@ void startThinker(void * shmdata1, int pipe) {
 
 int ok = 1;
 void think() {
+    printf("Berechne Spielzug...");
     switch(ok){
         case 1: 
             sendToConnector("PLAY G3:H4");
@@ -68,6 +70,7 @@ void think() {
 void sendToConnector(char* message) {
     int length = strlen(message);
 
+    printf("Sending '%s' to pipe %i...", message, pipe_fd);
     if (write(pipe_fd, message, length) != length) { //In Schreibseite schreiben
         perror("Fehler bei write()");
         exit (-2);
@@ -77,7 +80,7 @@ void sendToConnector(char* message) {
 
 
 void signal_handler(int signal_key) {
-    printf("\n\n\nincoming signal %i \n\n\n", signal_key);  
+    printf("\n\nincoming signal %i \n\n", signal_key);  
     struct game* current_game = shmdata;
     
     shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
@@ -109,7 +112,7 @@ void signal_handler(int signal_key) {
 
     int i = 0;
     while(anzahlSteine > 0){
-        printf("Going through Stein %i, with value: %s\n", i, currentBrett[i]);
+        //printf("Going through Stein %i, with value: %s\n", i, currentBrett[i]);
         
         save_brett_in_matrix(currentBrett[i][0], currentBrett[i][2] - 'A' + 1, currentBrett[i][3] - '0');
 
@@ -122,9 +125,10 @@ void signal_handler(int signal_key) {
     printfield(my_brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
-    if ((current_game->flag) == 1){
-        think();
-    }
+    printf("flag: %i", current_game->flag);
+    // if ((current_game->flag) == 1){
+         think();
+    // }
 }
 
 void printfield(char print[9][9][13]) {
@@ -184,6 +188,8 @@ void printfield(char print[9][9][13]) {
     printf("\n");
 }
 
-void think(){
-    printf("Ich mach ja schon...");
-}
+// void think(){
+//     printf("Ich mach ja schon...");
+// }
+
+//39gtsqqzfypr5

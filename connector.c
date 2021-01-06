@@ -23,38 +23,23 @@
 void registerFd(int epoll_fd, int fd);
 struct epoll_event waitForInput(int epoll_fd);
 
+int epoll_fd, pipe_fd;
 // epoll(): https://suchprogramming.com/epoll-in-3-easy-steps/
 void startConnector(int fd_sock, int fd_pipe) {
     //Create Epoll instance
-    int epoll_fd = epoll_create1(0);
+    epoll_fd = epoll_create1(0);
+    pipe_fd = fd_pipe; 
     //Create Pipe read buffer
-    char read_buffer[PIPE_BUF];
 
     if(epoll_fd == -1) {
         perror("Failed to create epoll file descriptor\n");
         exit(-1);
     }
+
     //Add socket File descriptor to epoll for listening
     registerFd(epoll_fd, fd_sock);
     //Add pipe File descriptor to epoll for listening
     registerFd(epoll_fd, fd_pipe);
-
-    //Listening for incoming data
-    struct epoll_event event = waitForInput(epoll_fd);
-
-    //Checking from where data came
-    if (event.data.fd == fd_sock) {
-        //Data came from socket (GameServer)
-
-        //myread
-    } else if (event.data.fd == fd_pipe) {
-        //Data came from pipe (Thinker)
-
-        read(fd_pipe, read_buffer, PIPE_BUF);
-        //mywrite to server
-    }
-    
-    close(epoll_fd);
 }
 
 //werte der flags fuer game auslesen
@@ -112,6 +97,9 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             mywrite(sock, "OKWAIT");
             
         }
+        else if (strcmp(spiel_info, "+ MOVEOK") == 0) {
+            printf("Connector: processing + MOVEOK\n");
+        }
         else if(strncmp(spiel_info, "+ MOVE", 6) == 0){
             // spiel_info = myread(sock, buffer);
 
@@ -167,11 +155,38 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
             current_game->flag = continuee;//0
         } 
         else if(strncmp(spiel_info, "+ OKTHINK", 9) == 0){
+            printf("fd_sock: %i, fd_pipe: %i\n", *sock, pipe_fd);
+            printf("Wating for input from pipe...\n");
+            //Listening for incoming data
+            struct epoll_event event = waitForInput(epoll_fd);
             
+            printf("Got input from fd: %i\n", event.data.fd);
+            //Checking from where data came
+            if (event.data.fd == *sock) {
+                //Data came from socket (GameServer)
+                printf("\nWir sind in event.data.fd sock\n");
+                continue;
+                
+                //myread
+            } else if (event.data.fd == pipe_fd) {
+                //Data came from pipe (Thinker)
+                char* read_buffer = malloc(BUF * sizeof(char));
+                
+                do {
+                    read(pipe_fd, read_buffer, 1);
+                } while (*(read_buffer++) != '\0');
+
+                //read(pipe_fd, read_buffer, PIPE_BUF);
+                printf("read data from pipe: '%s'\n", read_buffer);
+                
+                mywrite(sock, read_buffer);
+                free(read_buffer);
+            }
         } 
         else {
-            printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'", spiel_info);
+            printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'\n", spiel_info);
         }
+        
     }
 
     free(buffer);
