@@ -35,14 +35,6 @@ typedef struct player {
     int registered;
 } player;
 
-// typedef struct brett {
-//     //Farbe des Steins
-//     char color;
-//     //Column A,B,C,D,E,F,G,H
-//     int column;
-//     //Row 1,2,3,4,5,6,7,8
-//     int row;
-// } brett;
 
 int makeConnection(game_config config);
 
