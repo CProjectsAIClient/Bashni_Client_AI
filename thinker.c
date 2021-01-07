@@ -75,7 +75,7 @@ void signal_handler(int signal_key) {
 
     memcpy(current_game, shmdata, sizeof(game));
 
-    printf("PiecesCount im THINKER!!!!!!: %i\n", current_game->pieces_count);
+    printf("PiecesCount: %i,", current_game->pieces_count);
     printf("Gamename: %s, ", current_game->name);
     printf("Playernummer: %d, ", current_game->player_number);
     printf("Playeranzahl: %d, ", current_game->player_count);
