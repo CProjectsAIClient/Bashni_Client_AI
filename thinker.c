@@ -8,52 +8,32 @@
 #include <string.h>
 #include <unistd.h>
 
+//ruft think auf
 void signal_handler(int signal_key);
-void sendToConnector(char* message);
+//Berechnet Zug
 void think();
-
-void reinitialize_brett_with_null(){
-    for(int i=0;i<=8;i++){
-        for(int j=0;j<=8;j++){
-            for (int x=0;x<=12;x++){
-                my_brett[i][j][x] = '-';
-            }
-        }
-    }
-}
-
-
-void save_brett_in_matrix(char color, int column, int row){
-    int i = 0, check = 0;
-    while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
-        i++;
-        check = 1;
-    }
-    if(check == 1)
-        for(int k=i-1;k>=0;k--){
-            my_brett[row][column][k + 1] = my_brett[row][column][k];
-        }
-
-    my_brett[row][column][0] = color;
-
-}
+//Sendet berechnete Zug Daten über die Pipe zum Connector
+void sendToConnector(char* message);
+//Setzt die Brett Matrix zurück
+void reinitialize_brett_with_null();
+//Speichert die Daten eines Spielsteins in der Brett Matrix
+void save_brett_in_matrix(char color, int column, int row);
 
 void* shmdata;
 void *shmThinkerdata;
 int pipe_fd;
 int ok = 1;
+int turn = 0;
 
 void startThinker(void * shmdata1, int pipe) {
-
     shmdata = shmdata1;
     pipe_fd = pipe;
     
+    //Signal Handler registrieren
     signal(SIGUSR1, signal_handler);
 }
 
-
 void think() {
-
     printf("Berechne Spielzug...");
     switch(ok){
         case 1: 
@@ -76,21 +56,17 @@ void think() {
 void sendToConnector(char* message) {
     int length = strlen(message);
 
-    printf("Sending '%s' to pipe %i...", message, pipe_fd);
-    if (write(pipe_fd, message, length) != length) { //In Schreibseite schreiben
-        perror("Fehler bei write()");
+    if (write(pipe_fd, message, length) != length) {
+        perror("Fehler bei write() in pipe");
         exit (-2);
     }
 }
 
-
-
 void signal_handler(int signal_key) {
-    printf("\n\nincoming signal %i \n\n", signal_key);  
     struct game* current_game = shmdata;
     
+    //SHM für Spielbrett
     shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
-
     if(shmThinkerdata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
         exit(-3);
@@ -127,17 +103,50 @@ void signal_handler(int signal_key) {
     }
     
     //Spielbrett ausgeben
-    printf("Printing Brett...\n");
+    printf("Printing Brett (Turn: %i)...\n", turn);
     printfield(my_brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
-    printf("flag: %i", current_game->flag);
-    // if ((current_game->flag) == 1){
-         think();
-    // }
+    printf("flag: %i\n", current_game->flag);
+    if ((current_game->flag) == 1){
+        think();
+    }
+    else{
+        //GAME OVER
+        printf("flag ist %i, gell?\n", current_game->flag);
+        exit(10);
+    }
+}
+
+void reinitialize_brett_with_null(){
+    for(int i=0;i<=8;i++){
+        for(int j=0;j<=8;j++){
+            for (int x=0;x<=12;x++){
+                my_brett[i][j][x] = '-';
+            }
+        }
+    }
+}
+
+
+void save_brett_in_matrix(char color, int column, int row){
+    int i = 0, check = 0;
+    while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
+        i++;
+        check = 1;
+    }
+    if(check == 1)
+        for(int k=i-1;k>=0;k--){
+            my_brett[row][column][k + 1] = my_brett[row][column][k];
+        }
+
+    my_brett[row][column][0] = color;
+
 }
 
 void printfield(char print[9][9][13]) {
+
+turn++;
   printf("   A B C D E F G H\n");
   printf(" +-----------------+\n");
 
@@ -193,9 +202,5 @@ void printfield(char print[9][9][13]) {
     }
     printf("\n");
 }
-
-// void think(){
-//     printf("Ich mach ja schon...");
-// }
 
 //39gtsqqzfypr5

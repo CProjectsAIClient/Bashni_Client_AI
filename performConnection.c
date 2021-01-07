@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
 //header fuer socket
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -52,7 +53,7 @@ int makeConnection(game_config game_conf){
     return sock;
 }
 
-void doperformConnection(int *sock, char gameid[], int player, game *current_game, struct player* enemy_list){
+void doperformConnection(int *sock, char gameid[], int player, game *current_game){
     char* buffer = malloc(BUF * sizeof(char));
 
     //Ausgaben des Client in der Kommunikation mit dem Server
@@ -114,9 +115,6 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
         
         a++;
     }
-
-    enemy_list = enemies;
-
 
     //Ende der Gegner
     myread(sock, buffer);

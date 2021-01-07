@@ -55,12 +55,8 @@ int main(int argc, char *argv[]) {
     printf("Type: %s \n", game_conf.gametype);
 
     //filedeskriptor erstellen
-    int* sock = NULL;
-    sock = malloc(sizeof(int));
+    int* sock = malloc(sizeof(int));
     *sock = makeConnection(game_conf);
-
-
-    int anzahl_Steine = 25;
     
    
     //Erstellen eines SHM-Bereichs
@@ -69,77 +65,58 @@ int main(int argc, char *argv[]) {
         printf("Fehler beim Erstellen des SHM\n");
         exit(-2);
     }
-    printf("shmget funktioniert\n");
 
     //Erstellen der Pipe
     int pipe_fd[2];
-
     if (pipe(pipe_fd) < 0) {
         perror("Fehler beim Erstellen der Pipe");
         exit(-2);
     }
 
-
     //Erstellen eines weiteren Prozesses
     pid_t pid;
     pid = fork();
     
+    //SHM Anbinden in beiden P
     void *shmdata = shmat(memory_id,NULL,0);
-
     if(shmdata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM\n");
         exit(-3);
     }
-    printf("shmat funktioniert\n");
 
     if (pid < 0) {
         //Error by creating the childprocess
         fprintf(stderr, "Fehler bei fork()\n"); 
     } else if (pid == 0){
-        //Childprocess
-        //Connector process
-        printf("\a\t--- 🧒 CHILD PROCESS [Connector]: ---\n\n");
-
-        game *current_game = (game*) shmdata;
-        current_game->connectorID = 0;
-        current_game->thinkerID   = 1;
+        //Childprocess (Connector process)
 
         //Pipe Schreibseite schließen
         close(pipe_fd[1]);
-        
-        struct player* enemies = malloc(sizeof(player));
 
-        shmdata = (game*) shmdata;
-
-        doperformConnection(sock, gameid, playerid, shmdata, enemies);
+        //Game Struktur initialisieren
+        game *current_game = (game*) shmdata;
+        current_game->connectorID = getpid();
+        current_game->thinkerID   = getppid();
+    
+        //Prolog Phase
+        doperformConnection(sock, gameid, playerid, shmdata);
+        //Epoll für pipe und socket initialisieren
         startConnector(*sock, pipe_fd[0]);
 
-        doSpielVerlauf(sock, playerid, shmdata, anzahl_Steine);
-
-
-        printf("shmdata %s\n", (char * ) shmdata);//koennte gefaehrlich sein bei valgrind
-
-        //shmdata = current_game;
-        //current_game = shmdata;
-
-        
-        free(enemies);
-        //free(current_game);
-    
+        //Spielverlauf Phase + kommuniktion zwischen server und thinker herstellen
+        doSpielVerlauf(sock, playerid, shmdata);        
     } else {
-        //Parentprocess
-        //Thinker process
-        printf("\a\t--- 👨 Father PROCESS [Thinker]: ---\n\n");
+        //Parentprocess (Thinker process)
 
         //Pipe Leseseite schließen
         close(pipe_fd[0]);
 
+        //Signal Handler initialisieren
         startThinker(shmdata, pipe_fd[1]);
 
         //warten auf kindprozess
         if ((waitpid(pid,NULL,0)) < 0){
             perror("Fehler beim Warten auf den Connector\n");
-            //exit(EXIT_FAILURE);
         }
     }
 
@@ -152,6 +129,7 @@ int main(int argc, char *argv[]) {
     
     return EXIT_SUCCESS;
 }
+
 //fancy :)
 void printWelcome() {
     printf("\n /$$$$$$$                      /$$                 /$$          /$$$$$$  /$$ /$$                       /$$    ");
@@ -163,5 +141,3 @@ void printWelcome() {
     printf("\n| $$$$$$$/|  $$$$$$$ /$$$$$$$/| $$  | $$| $$  | $$| $$        |  $$$$$$/| $$| $$|  $$$$$$$| $$  | $$  |  $$$$/");
     printf("\n|_______/  \\_______/|_______/ |__/  |__/|__/  |__/|__/         \\______/ |__/|__/ \\_______/|__/  |__/   \\___/  \n\n");
 }
-
-//3vhxf2pg6851t

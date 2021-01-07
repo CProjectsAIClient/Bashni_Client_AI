@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#define BUF 1024
+#define BUF 128
 #define GAME_QUIT 0
 #define GAME_MOVE 1
 
@@ -38,7 +38,7 @@ typedef struct player {
 
 int makeConnection(game_config config);
 
-void doperformConnection(int *sock, char *gameid, int player, game *current_game, struct player* player_list);
+void doperformConnection(int *sock, char *gameid, int player, game *current_game);
 
 char* myread(int *sock, char* buffer);
 

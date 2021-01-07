@@ -18,12 +18,17 @@
 #include "performConnection.h"
 #include "thinker.h"
 
-#define PIPE_BUF 128
-
+//File deskriptor für epoll registrieren
 void registerFd(int epoll_fd, int fd);
+//Warten auf input von pipe und socket
 struct epoll_event waitForInput(int epoll_fd);
+//Brett in SHM speichern und signal an thinker senden
+void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game* current_game);
+
+int checkQuit(char*buffer);
 
 int epoll_fd, pipe_fd;
+
 // epoll(): https://suchprogramming.com/epoll-in-3-easy-steps/
 void startConnector(int fd_sock, int fd_pipe) {
     //Create Epoll instance
@@ -42,99 +47,70 @@ void startConnector(int fd_sock, int fd_pipe) {
     registerFd(epoll_fd, fd_pipe);
 }
 
-//werte der flags fuer game auslesen
-int checkQuit(char*buffer);
-
-void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game* current_game);
-
-void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl_Steine) {
-
-    int anzahlSteine = 0, continuee = 1, i = 0;
-
+void doSpielVerlauf(int *sock, int player, struct game *current_game) {
+    int continue_run = 1, i = 0;
     char *buffer = malloc(BUF * sizeof(char));
-    char *spiel_info = malloc(BUF * sizeof(char));
 
     //Lesen zum ersten Mal:   + MOVE
     if (strncmp(myread(sock, buffer), "+ MOVE", 6) == 0) {
         printf("Move Geschwindigkeit wurde festgelegt\n");
+        current_game->flag = 1;
     } else {
         printf("Fehler beim ersten + MOVE %s\n", buffer);
     }
 
+    //Spielstein Anzahl lesen
     sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
-    printf("Connector Piecescount: %i\n", current_game->pieces_count);
 
     //SHM fuer Spielfeld erstellen
     current_game->shmFieldID = shmget(IPC_PRIVATE, sizeof(char) * (current_game->pieces_count) * 5, IPC_CREAT | 0666);
 
+    //Spielfeld SHM Anbinden
     void *shmConnectordata = shmat(current_game->shmFieldID,NULL,0);
-
-    //memcpy(shmConnectorData, current_game, sizeof(game));
-
     if(shmConnectordata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM fuer das Feld\n");
         exit(-3);
-    }
-    printf("shmat im Connector funktioniert\n");
-
+    }   
     
+    current_game->flag = continue_run;//1
     saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game);
 
 
-
-
-    while(continuee){
-
-        spiel_info = myread(sock, buffer);
-        
-        if (*spiel_info != '+') {
-            printf("Fehler in der Spielverlauf Phase!");
-            exit(0);
-        }
+    while(continue_run){
+        buffer = myread(sock, buffer);
 
         //Wait Befehlsequenz
-        if(strncmp(spiel_info, "+ WAIT", 6) == 0){
+        if(strcmp(buffer, "+ WAIT") == 0){
             mywrite(sock, "OKWAIT");
-            
         }
-        else if (strcmp(spiel_info, "+ MOVEOK") == 0) {
-            printf("Connector: processing + MOVEOK\n");
-        }
-        else if(strncmp(spiel_info, "+ MOVE", 6) == 0){
-            // spiel_info = myread(sock, buffer);
-
-            //lese Anzahl an Steinen
-            //anzahlSteine = atoi(spiel_info + 13) + 1;
-            //anzahl_Steine = anzahlSteine;
-
+        else if(strncmp(buffer, "+ MOVE", 6) == 0){
+            //Anzahl der Spielsteine lesen
             sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
 
-            current_game->flag = GAME_MOVE;//1
+            current_game->flag = continue_run;//1
+            printf("wert von continue_run %i\n", continue_run);
+            printf("wert der flag %i\n", current_game->flag);
 
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
-            saveAndSendBrett(sock,shmConnectordata,current_game->pieces_count, current_game);
-
-            printf("\nprint10\n");
-
+            saveAndSendBrett(sock,shmConnectordata, current_game->pieces_count, current_game);
         } 
-        else if(strncmp(spiel_info, "+ GAMEOVER", 10) == 0) {
-            //lese Anzahl an Steinen
-            anzahlSteine = atoi(spiel_info + 13) + 1;
-            anzahl_Steine = anzahlSteine;
+        //ACHTUNG auf Gameover, wenn wir da ankommen
+        else if(strcmp(buffer, "+ GAMEOVER") == 0) {
+            //Anzahl der Spielsteine lesen
+            sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
 
-            //hier soll ich noch das Brett in 2 Teile trennen: die Farbe und die Position. Das mache ich heute.
-            char currentBrett[anzahlSteine + 1][5];
-            i = 0;
+            current_game->flag = 0;
+            saveAndSendBrett(sock,shmConnectordata, current_game->pieces_count, current_game);
 
             //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
             int nr_spieler = current_game->player_count;
             char whoWonGame[nr_spieler + 1][20];
-
+            
             i=0;
             while(nr_spieler > 0){
-                spiel_info = myread(sock, buffer);
-                strncpy(whoWonGame[i], spiel_info + 2, 7);
-                if(*(spiel_info + 13) == 'Y'){
+                buffer = myread(sock, buffer);
+                strncpy(whoWonGame[i], buffer + 2, 7);
+                if(*(buffer + 13) == 'Y'){
                     strcat(whoWonGame[i], " is the winner!"); 
                 }
                 else{
@@ -142,67 +118,46 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game, int anzahl
                 }
                 i++;
                 printf("%s/n", whoWonGame[i-1]);
+                nr_spieler--;
             }
 
             //lese QUIT
-            spiel_info = myread(sock, buffer);
-
-            //current_game->flag = GAME_QUIT;
+            buffer = myread(sock, buffer);
 
             // if the game has ended, end the while loop
-            continuee = checkQuit(spiel_info);
+            continue_run = checkQuit(buffer);
 
-            current_game->flag = continuee;//0
+            current_game->flag = continue_run;//0
         } 
-        else if(strncmp(spiel_info, "+ OKTHINK", 9) == 0){
-            printf("fd_sock: %i, fd_pipe: %i\n", *sock, pipe_fd);
-            printf("Wating for input from pipe...\n");
+        else if(strcmp(buffer, "+ OKTHINK") == 0){
             //Listening for incoming data
             struct epoll_event event = waitForInput(epoll_fd);
             
-            printf("Got input from fd: %i\n", event.data.fd);
             //Checking from where data came
             if (event.data.fd == *sock) {
                 //Data came from socket (GameServer)
-                printf("\nWir sind in event.data.fd sock\n");
                 continue;
-                
-                //myread
             } else if (event.data.fd == pipe_fd) {
-
-                printf("going to read data from pipe\n");
-
-                //Data came from pipe (Thinker)
                 char* read_buffer = malloc(BUF * sizeof(char));
+                //Data came from pipe (Thinker)
+                read(pipe_fd, read_buffer, BUF);
                 
-                // do {
-                //     read(pipe_fd, read_buffer, 1);
-                //     printf("print_before: read_buffer: %s\n", read_buffer);
-                // } while (*(read_buffer++) != '\0');
-
-                read(pipe_fd, read_buffer, BUF * sizeof(char));
-                
-                printf("print_after: %s\n", read_buffer);
-
-                //read(pipe_fd, read_buffer, PIPE_BUF);
-                printf("read data from pipe: '%s'\n", read_buffer);
-                
+                //write PLAY to Server
                 mywrite(sock, read_buffer);
+                //read + MOVEOK
+                myread(sock, buffer);
+                
                 free(read_buffer);
             }
         } 
         else {
-            printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'\n", spiel_info);
+            printf("Fehler beim einlesen der Server Flags. Unbekannter Flag: '%s'\n", buffer);
         }
         
     }
 
     free(buffer);
     shmdt(shmConnectordata);
-}
-
-void getPositions(game game1,struct player* enemies_list){
-
 }
 
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * current_game) {
@@ -225,40 +180,14 @@ void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * cur
     //currentBrett in SHM schreiben
     printf("Piecescount vor memcpy %i", current_game->pieces_count);
     memcpy(shmAddress, currentBrett, sizeof(char) * feldgr_copy * 5);
-    //memcpy(shmConnectorData, current_game, sizeof(game));
-    
-    
-    //printfield(my_brett); kommt in thinker
-    printf("\nprint5\n");
+
     //thinking schicken
     mywrite(sock, "THINKING");
     kill(getppid(), SIGUSR1);  
-    printf("\nprint6\n");
+
     free(buffer);
 }
 
-void sendPostitions(){
-    
-}
-
-
-
-
-//Testet ob die Nachricht quit ist, Rueckgabe der Flag
-int checkQuit(char*buffer){
-     char quitarr [] = "+ quit";
-     char QUITarrGR [] = "+ QUIT";
-    for (int i = 0; i <6; i++){
-        if ( (buffer[i]!= quitarr[i]) && (buffer[i]!= QUITarrGR[i])){
-            return 1;
-        } 
-    }
-    return 0;
-
-    //return strcmp(buffer, "+ QUIT");
-}
-
-//1jdk61fquwhw3
 void registerFd(int epoll_fd, int fd) {
     //Create Epoll event for listening to incoming data on file descriptor fd
     struct epoll_event event;
@@ -272,6 +201,18 @@ void registerFd(int epoll_fd, int fd) {
         exit(-1);
     }
 }
+
+int checkQuit(char*buffer){
+     char quitarr [] = "+ quit";
+     char QUITarrGR [] = "+ QUIT";
+    for (int i = 0; i <6; i++){
+        if ( (buffer[i]!= quitarr[i]) && (buffer[i]!= QUITarrGR[i])){
+            return 1;
+        } 
+    }
+    return 0;
+}
+
 
 struct epoll_event waitForInput(int epoll_fd) {
     struct epoll_event events[1];
