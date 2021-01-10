@@ -172,7 +172,7 @@ turn++;
     char count;
     for(int i=1; i<=8; i++) {
         for(int z=1; z<=8; z++) {
-            if (print[z][i][0] == 'w') {
+            if (print[z][i][0] == 'w' || print[z][i][0] == 'W') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
                 for(int j=12; j>=0; j--) {
@@ -188,7 +188,7 @@ turn++;
   printf("Black Pieces\n=======================\n");
     for(int i=1; i<=8; i++) {
         for(int z=1; z<=8; z++) {
-            if (print[z][i][0] == 'b') {
+            if (print[z][i][0] == 'b' || print[z][i][0] == 'B') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
                 for(int j=12; j>=0; j--) {

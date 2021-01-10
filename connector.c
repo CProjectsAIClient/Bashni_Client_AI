@@ -50,13 +50,17 @@ void startConnector(int fd_sock, int fd_pipe) {
 void doSpielVerlauf(int *sock, int player, struct game *current_game) {
     int continue_run = 1, i = 0;
     char *buffer = malloc(BUF * sizeof(char));
-
+    char *spiel_info = malloc(BUF * sizeof(char));
     //Lesen zum ersten Mal:   + MOVE
-    if (strncmp(myread(sock, buffer), "+ MOVE", 6) == 0) {
+    if (strncmp(spiel_info = myread(sock, buffer), "+ MOVE", 6) == 0) {
         printf("Move Geschwindigkeit wurde festgelegt\n");
         current_game->flag = 1;
     } else {
         printf("Fehler beim ersten + MOVE %s\n", buffer);
+        while (strncmp(spiel_info, "+ WAIT", 6) == 0){
+            mywrite(sock, "OKWAIT");
+            spiel_info = myread(sock, buffer);
+        }
     }
 
     //Spielstein Anzahl lesen
@@ -104,10 +108,11 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
 
             //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
             int nr_spieler = current_game->player_count;
-            char whoWonGame[nr_spieler + 1][20];
+            
             
             i=0;
             while(nr_spieler > 0){
+                char whoWonGame[nr_spieler + 1][40];
                 buffer = myread(sock, buffer);
                 strncpy(whoWonGame[i], buffer + 2, 7);
                 if(*(buffer + 13) == 'Y'){
@@ -117,7 +122,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
                     strcat(whoWonGame[i], " has lost!");    
                 }
                 i++;
-                printf("%s/n", whoWonGame[i-1]);
+                printf("%s\n", whoWonGame[i-1]);
                 nr_spieler--;
             }
 
