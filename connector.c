@@ -25,8 +25,6 @@ struct epoll_event waitForInput(int epoll_fd);
 //Brett in SHM speichern und signal an thinker senden
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game* current_game);
 
-int checkQuit(char*buffer);
-
 int epoll_fd, pipe_fd;
 
 // epoll(): https://suchprogramming.com/epoll-in-3-easy-steps/
@@ -50,16 +48,18 @@ void startConnector(int fd_sock, int fd_pipe) {
 void doSpielVerlauf(int *sock, int player, struct game *current_game) {
     int continue_run = 1, i = 0;
     char *buffer = malloc(BUF * sizeof(char));
-    char *spiel_info = malloc(BUF * sizeof(char));
+    
     //Lesen zum ersten Mal:   + MOVE
-    if (strncmp(spiel_info = myread(sock, buffer), "+ MOVE", 6) == 0) {
+    myread(sock, buffer);
+    if (strncmp(buffer, "+ MOVE", 6) == 0) {
         printf("Move Geschwindigkeit wurde festgelegt\n");
         current_game->flag = 1;
     } else {
-        printf("Fehler beim ersten + MOVE %s\n", buffer);
-        while (strncmp(spiel_info, "+ WAIT", 6) == 0){
+        printf("Warten auf Spielzug des Gegners...\n");
+
+        while (strcmp(buffer, "+ WAIT") == 0){
             mywrite(sock, "OKWAIT");
-            spiel_info = myread(sock, buffer);
+            myread(sock, buffer);
         }
     }
 
@@ -126,11 +126,8 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
                 nr_spieler--;
             }
 
-            //lese QUIT
-            buffer = myread(sock, buffer);
-
             // if the game has ended, end the while loop
-            continue_run = checkQuit(buffer);
+            continue_run = strcmp(myread(sock, buffer), "+ QUIT") == 0;
 
             current_game->flag = continue_run;//0
         } 
@@ -183,7 +180,6 @@ void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * cur
     myread(sock, buffer);
 
     //currentBrett in SHM schreiben
-    printf("Piecescount vor memcpy %i", current_game->pieces_count);
     memcpy(shmAddress, currentBrett, sizeof(char) * feldgr_copy * 5);
 
     //thinking schicken
@@ -205,17 +201,6 @@ void registerFd(int epoll_fd, int fd) {
         close(epoll_fd);
         exit(-1);
     }
-}
-
-int checkQuit(char*buffer){
-     char quitarr [] = "+ quit";
-     char QUITarrGR [] = "+ QUIT";
-    for (int i = 0; i <6; i++){
-        if ( (buffer[i]!= quitarr[i]) && (buffer[i]!= QUITarrGR[i])){
-            return 1;
-        } 
-    }
-    return 0;
 }
 
 
