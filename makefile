@@ -1,4 +1,4 @@
-OBJS    = performConnection.o config.o connector.o thinker.o
+OBJS    = performConnection.o config.o connector.o thinker.o ki.c
 OUT     = sysprak-client
 CC      = gcc
 FLAGS   = -Wall -Wextra -Werror
@@ -17,6 +17,9 @@ connector.o: connector.c
 
 thinker.o: thinker.c
 	$(CC) -g -c thinker.c
+
+ki.o: ki.c
+	$(CC) -g -c ki.c
 
 clean:
 	rm -f $(OBJS) $(OUT)

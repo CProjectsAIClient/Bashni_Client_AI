@@ -168,7 +168,7 @@ void printfield(char print[9][9][13]) {
 
   
 
-  printf("White Pieces\n=======================\n");
+    printf("White Pieces\n=======================\n");
     char count;
     for(int i=1; i<=8; i++) {
         for(int z=1; z<=8; z++) {
