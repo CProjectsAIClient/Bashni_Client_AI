@@ -3,6 +3,10 @@
 
 #include "performConnection.h"
 
-void initialize_random__ki(game game_struct);
+void initialize_random_ki(struct game* game_struct);
+
+void getMove(char my_brett[9][9][13]);
 
 #endif
+
+//3r1s19fspsivp

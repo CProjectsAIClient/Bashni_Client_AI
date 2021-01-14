@@ -1,4 +1,4 @@
-OBJS    = performConnection.o config.o connector.o thinker.o ki.c
+OBJS    = performConnection.o config.o connector.o thinker.o random_ki.o
 OUT     = sysprak-client
 CC      = gcc
 FLAGS   = -Wall -Wextra -Werror
@@ -18,8 +18,8 @@ connector.o: connector.c
 thinker.o: thinker.c
 	$(CC) -g -c thinker.c
 
-ki.o: ki.c
-	$(CC) -g -c ki.c
+random_ki.o: random_ki.c
+	$(CC) -g -c random_ki.c
 
 clean:
 	rm -f $(OBJS) $(OUT)
