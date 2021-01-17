@@ -81,7 +81,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
 
 
     while(continue_run){
-        buffer = myread(sock, buffer);
+        myread(sock, buffer);
 
         //Wait Befehlsequenz
         if(strcmp(buffer, "+ WAIT") == 0){
@@ -140,7 +140,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
                 //Data came from socket (GameServer)
                 continue;
             } else if (event.data.fd == pipe_fd) {
-                char* read_buffer = malloc(BUF * sizeof(char));
+                char* read_buffer = calloc(BUF , sizeof(char));
                 //Data came from pipe (Thinker)
                 read(pipe_fd, read_buffer, BUF);
                 

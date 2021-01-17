@@ -5,7 +5,7 @@
 
 void initialize_random_ki(struct game* game_struct);
 
-void getMove(char my_brett[9][9][13]);
+char* getMove(char my_brett[9][9][13]);
 
 #endif
 

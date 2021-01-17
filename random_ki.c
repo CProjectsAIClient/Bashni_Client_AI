@@ -13,13 +13,13 @@
 #define TRUE 1
 #define FALSE 0
 
-short** getPossibleMovesForPiece(int i, int j, char my_brett [9][9][13], int is_jump);
-void calculateDame(short** possible_move, short* current_move, int zeile, int spalte, char my_brett[9][9][13]);
-void calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], int zeile, int spalte, short addZeile, short addSpalte);
-void calculateMove(short** possible_moves, short* current_move, int zeile, int spalte, short addZeile, short addSpalte);
+short** getPossibleMovesForPiece(short i, short j, char my_brett [9][9][13], int is_jump);
+void calculateDame(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
+void calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
+void calculateMove(short** possible_moves, short* current_move, short zeile, short spalte, short addZeile, short addSpalte);
 void printAllMoves(short*** all_moves);
 void printMoves(short**possible_moves);
-void getMove(char my_brett[9][9][13]);
+char* translateMove(short* moves);
 
 
 char colour, colourEnemy;
@@ -40,7 +40,7 @@ void initialize_random_ki(struct game* game_struct){
 
 
 //zusammenfassung aller mgl moves und eintscheidung fuer einen
-void getMove(char my_brett[9][9][13]){
+char* getMove(char my_brett[9][9][13]){
     //strcpy(array, my_brett);
     /*
     [1,2,1,5,6]
@@ -48,12 +48,12 @@ void getMove(char my_brett[9][9][13]){
     ...
     */
 
-    //[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5, ], []]
-    //short saveMoves [12][18][27];
+    //[[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5]], [[]]]
+    //short saveMoves [12][18][27]
     short*** saveMoves = calloc(12, sizeof(short));
 
     printf("color: %c\n", colour);
-    int i,j,k,l=0;
+    short i,j,k,l=0;
     for(i = 1;i<=8;i++){
         for(j=1;j<=8;j++){
             if(my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)){
@@ -64,16 +64,38 @@ void getMove(char my_brett[9][9][13]){
             }
         }
     }
+    while(1){
+        short x = rand() % 12;
+        if(saveMoves[x]!= NULL){
+            short** possible_moves = saveMoves[x];
+            
+            while (1) {
+                x = rand() % 18;
+
+                if (possible_moves[x] != NULL) {
+                    char* random_move = translateMove(possible_moves[x]);
+                    printf("this is the move: %s", random_move);
+
+                    //schicken
+                    return random_move;
+                }
+            }
+        }
+    }
+    
     //printAllMoves(saveMoves);
-
+    
     printf("getMove zu ende.\n");
-
+    for( l = 0; l < 12; l++){
+        free(saveMoves+l);
+    }
     free(saveMoves);
 }
 
-
 //berechnet mgl Zuege fuer einen Stein
-short** getPossibleMovesForPiece(int zeile, int spalte, char my_brett [9][9][13], int is_jump){
+short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9][13], int is_jump){
+    spalte = (short) spalte;
+    zeile = (short) zeile;
     short dir = (colour == 'w') ? 1 : -1;
     short ** possible_moves = calloc(18, sizeof(short));
     short* current_move = malloc(sizeof(short));
@@ -185,24 +207,24 @@ short** getPossibleMovesForPiece(int zeile, int spalte, char my_brett [9][9][13]
 
     }
 
-   // printMoves(possible_moves);
+    printMoves(possible_moves);
     printf("Returning possible moves for piece (%i,%i)", zeile, spalte);
     free(current_move);
     return possible_moves;
 }
 
-void calculateDame(short** possible_move, short *current_move, int zeile, int spalte, char my_brett[9][9][13]) {
+void calculateDame(short** possible_move, short *current_move, short zeile, short spalte, char my_brett[9][9][13]) {
 
 }
 
-void calculateMove(short** possible_moves, short *current_move, int zeile, int spalte, short addZeile, short addSpalte) {
-    short* move = calloc(5, sizeof(char));
+void calculateMove(short** possible_moves, short *current_move, short zeile, short spalte, short addZeile, short addSpalte) {
+    short* move = calloc(6, sizeof(char));
     possible_moves[(*current_move)++] = move;
 
     if ((zeile + addZeile == 8 && colour == 'w') || (zeile + addZeile == 1 && colour == 'b')){
         move[0] = 3;//ist Dame geworden
     } else {
-        move[0] = 0;
+        move[0] = -1;
     }
 
     move[1] = zeile;
@@ -212,7 +234,7 @@ void calculateMove(short** possible_moves, short *current_move, int zeile, int s
     move[4] = spalte + addSpalte;
 }
 
-void calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], int zeile, int spalte, short addZeile, short addSpalte) {
+void calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte) {
     char new_brett [9][9][13];
     //kopie des bretts
     // strcpy(new_brett, my_brett);
@@ -229,11 +251,11 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
     short* move = calloc(27, sizeof(short));
     possible_moves[(*current_move)++] = move;
 
-    move[0] = -1; // jump
+    move[0] = -2; // jump
     move[1] = zeile; //alte zeile
     move[2] = spalte; //alte spalte
 
-    move[3] = zeile + addZeile + addZeile; //neue zeile
+    move[3] =  zeile + addZeile + addZeile; //neue zeile
     move[4] = spalte + addSpalte + addSpalte; //neue spalte
 
     //[[-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...]
@@ -278,7 +300,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
 void printAllMoves(short*** all_moves) {
     printf("All Moves: [\n");
     
-    for (int i = 0; i < 12; i++) {
+    for (short i = 0; i < 12; i++) {
         printMoves(all_moves[i]);
     }
 
@@ -287,25 +309,44 @@ void printAllMoves(short*** all_moves) {
 }
 
 void printMoves(short** possible_moves) {
-    printf("Possible Moves: [\n");
+    printf("  Possible Moves: [\n");
 
-    for (int i = 0; i < 18; i++) {
-        printf("  [");
+    for (short i = 0; i < 2; i++) {
+        printf("    [");
 
         short *move = possible_moves[i];
         //Gehe durch alle Teilzüge von next_move
-        int j = 0;
-        while (move[j] > 0)
+        short j = 0;
+        while (move+j != NULL && move[j] > 0 && j < 18)
         {
             if (j != 0) {
                 printf(", ");
             }
 
-            printf("%i", move[j]);
+            j++;
+            printf("%d", move[j]);
         }
 
         printf("]\n");
     }
 
-    printf("]\n");
+    printf("  ]\n");
+}
+
+char* translateMove(short* moves) {
+    char* arr = malloc(40*sizeof(char));
+    //arr = "PLAY ";
+    strcpy(arr, "PLAY ");
+    short i = 1, j = 5;
+    while(moves[i] != 0){
+        arr[j]   = 'A' - 1 + moves[i];
+        arr[j+1] = '0'     + moves[i+1];
+        arr[j+2] = ':';
+        i += 2;
+        j += 3;
+    }
+    j-=3;
+    arr[j+2] = '\0';
+        
+    return arr;
 }
