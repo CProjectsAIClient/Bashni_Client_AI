@@ -36,7 +36,11 @@ void startThinker(void * shmdata1, int pipe) {
 
 void think() {
     printf("Berechne Spielzug...");
-    sendToConnector(getMove(my_brett));
+
+    char* move = getMove(my_brett);
+    sendToConnector(move);
+
+    free(move);
 }
 
 void sendToConnector(char* message) {
