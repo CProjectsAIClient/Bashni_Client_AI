@@ -134,6 +134,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
                 //hier jumpfkt
                 printf("wert von current_move vor calculateJump: %d\n", *current_move);
                 calculateJump(possible_moves, current_move, my_brett, zeile, spalte, dir, dir);
+                printf("nach calculate jmp\n");
             }
 
             dirStein1 = TRUE;
@@ -152,6 +153,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
 
                 //hier jumpfkt
                 calculateJump(possible_moves, current_move, my_brett, zeile, spalte, dir, -dir);
+                printf("nach calculate jmp\n");
             }
 
             dirStein2 = TRUE;
@@ -169,6 +171,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
 
                 //hier jumpfkt
                 calculateJump(possible_moves, current_move, my_brett, zeile, spalte, -dir, dir);
+                printf("nach calculate jmp\n");
             }
         }
         //springe falls schwarz nach unten links
@@ -184,6 +187,8 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
 
                 //hier jumpfkt
                 calculateJump(possible_moves, current_move, my_brett, zeile, spalte, -dir, -dir);
+                printf("nach calculate jmp\n");
+                
             }
         }//movefkt
 
@@ -228,7 +233,7 @@ void calculateMove(short** possible_moves, short *current_move, short zeile, sho
     if ((zeile + addZeile == 8 && colour == 'w') || (zeile + addZeile == 1 && colour == 'b')){
         move[0] = 3;//ist Dame geworden
     } else {
-        move[0] = -1;
+        move[0] = -2;//jump
     }
 
     move[1] = zeile;
@@ -256,15 +261,18 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
 
     //stein den wir ueberspringen loeschen
     new_brett[zeile + addZeile][spalte + addSpalte][0] = '-';
+    printf("new_brett[%i][%i][0] = '%c'\n",zeile + addZeile, spalte + addSpalte, new_brett[zeile + addZeile][spalte + addSpalte][0]);
     //eigenen Stein neu platzieren
     new_brett[zeile + addZeile + addZeile][spalte + addSpalte + addSpalte][0] = my_brett[zeile][spalte][0];
+    printf("new_brett[%i][%i][0] = '%c'\n",zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett[zeile + addZeile + addZeile][spalte + addSpalte + addSpalte][0]);
     //alte Position des eigenen Steins löschen
     new_brett[zeile][spalte][0] = '-';
+    printf("new_brett[%i][%i][0] = '%c'\n", zeile, spalte, new_brett[zeile][spalte][0]);
 
     printf("Alloc memory for possible move...\n");
     short* move = calloc(27, sizeof(short));
     printf("position zum einspeichern festlegen: %d\n", *current_move);
-    possible_moves[(*current_move)++] = move;
+    
 
     printf("Setting default values...\n");
     move[0] = -2; // jump
@@ -274,20 +282,30 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
     move[3] = zeile  + addZeile  + addZeile; //neue zeile
     move[4] = spalte + addSpalte + addSpalte; //neue spalte
 
+    possible_moves[(*current_move)++] = move;
+
     printf("recursive call of getPossibleMovesForPiece...\n");
     //[[-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...]
+    printf("move vor rekursionsaufruf: %d\n", move[0]);
+    printf("move vor rekursionsaufruf: %d\n", move[1]);
+    printf("move vor rekursionsaufruf: %d\n", move[2]);
+    printf("move vor rekursionsaufruf: %d\n", move[3]);
+    printf("move vor rekursionsaufruf: %d\n", move[4]);
+    //printMove(move);
     short** next_possible_moves = getPossibleMovesForPiece(zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, TRUE);
-
     // -1,  5, 6,  7, 8                 // -1  7, 8,  8, 9          // -1  8, 9,  6, 5
     // -1,  5, 6,  7, 8,  8, 9,  6, 5   <- -1  7, 8,  8, 9,  6, 5   <-
 
     int i = 0;// 12 34 78 910 spielbrett // -1 12 34 78 ??// -1 34 78 910// -1 78 910
     short *next_move = next_possible_moves[i];
 
+    printf("injecting received possible moves from recursive call...\n");
     //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
-    while (next_move[0] == -1) {
+    while ((next_possible_moves[i][0] != -200) && (next_possible_moves[i][0] == -2)) {
+        printf("next_move[0] = %d\n", next_move[0]);
         int j = 3, k = 5;
-        short *next_move = next_possible_moves[i++];
+        next_move = next_possible_moves[i++];
+        printf(" NextMove : %d\n", *next_move);
 
         //Gehe durch alle Teilzüge von next_move
         while (next_move[j] > 0)
@@ -303,7 +321,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
         possible_moves[(*current_move)++] = move;
 
         //setze die default Werte für den neuen Zug
-        move[0] = -1; // jump
+        move[0] = -2; // jump
         move[1] = zeile; //alte zeile
         move[2] = spalte; //alte spalte
 
@@ -311,6 +329,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
         move[4] = spalte + addSpalte + addSpalte; //neue spalte
     }
 
+    printf("returning calculateJump fkt...\n");
     free(next_possible_moves);
 }
 
@@ -381,3 +400,5 @@ char* translateMove(short* moves) {
     
     return arr;
 }
+
+//289fkuxzkgkq7
