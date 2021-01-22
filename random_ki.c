@@ -54,7 +54,7 @@ char* getMove(char my_brett[9][9][13]){
                 short** possible_moves = getPossibleMovesForPiece(i,j, my_brett, FALSE);
                 
                 if (possible_moves[0][0] != -200) {
-                    saveMoves[counter] = possible_moves;
+                    saveMoves[counter] = (short**) possible_moves;
                     counter++;
                 }
             }
@@ -63,7 +63,7 @@ char* getMove(char my_brett[9][9][13]){
 
     for (int m = 0; m < counter; m++){
         printf("printing saveMoves[%d]", m);
-        printMoves(saveMoves[m]);
+        //printMoves(saveMoves[m]);
     }
 
     printf("Picking random move from saveMoves...\n");
@@ -73,7 +73,7 @@ char* getMove(char my_brett[9][9][13]){
     short** possible_moves = saveMoves[x];
 
     printf("Found possible moves:\n");
-    printMoves(possible_moves);
+    //printMoves(possible_moves);
     
     int possible_moves_counter = 0, l = 0;
 
@@ -104,7 +104,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
     possible_moves[0] = malloc(sizeof(short));
     possible_moves[0][0] = -200;
     //possible_moves = NULL;
-    short* current_move;
+    short* current_move = malloc(sizeof(short));
     *current_move = 0;
     //printf("colour in getpossiblemoves %c\n", colour);
 
@@ -121,14 +121,15 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
          * Jump Abfragen
          */
         //springe falls schwarz nach oben rechts
-        if ((my_brett[zeile + dir][spalte + dir][0] == colourEnemy || my_brett[zeile + dir][spalte + dir][0] == toupper(colourEnemy))
-            && (zeile + 2*dir) <9 && (zeile + 2*dir) >0 && (spalte + 2*dir) <9 && (spalte + 2*dir) >0){//<= oder <  ??
+        printf("!!! Aktuelle Zeile: %d, Spalte: %d\n", zeile, spalte);
+        if ((zeile + dir + dir) <9 && (zeile + dir + dir) >0 && (spalte + dir + dir) <9 && (spalte + dir + dir) >0 
+            && (my_brett[zeile + dir][spalte + dir][0] == colourEnemy || my_brett[zeile + dir][spalte + dir][0] == toupper(colourEnemy))){//<= oder <  ??
             printf("in erstem jump ");
             printf("my_brett[%i][%i] = %c\n", zeile + dir, spalte + dir, my_brett[zeile + dir][spalte + dir][0]);
             //return possible_moves;
 
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            if(my_brett[zeile + 2*dir][spalte + 2*dir][0] == '-'){
+            if(my_brett[zeile + dir + dir][spalte + dir + dir][0] == '-'){
                 war_hier = TRUE;
 
                 //hier jumpfkt
@@ -138,17 +139,19 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
             }
 
             dirStein1 = TRUE;
+            printf("dirStein1 = TRUE\n");
         }
+        printf("before If zweiter jump\n");
         //springe falls schwarz nach oben links
-        if ((my_brett[zeile + dir][spalte - dir][0] == colourEnemy || my_brett[zeile + dir][spalte - dir][0] == toupper(colourEnemy))
-            && (zeile + 2*dir) <9 && (zeile + 2*dir) >0 && (spalte - 2*dir) <9 && (spalte - 2*dir) >0){
+        if ((zeile +dir +dir) <9 && (zeile + dir + dir) >0 && (spalte - dir -dir) <9 && (spalte - dir - dir) >0 
+            && (my_brett[zeile + dir][spalte - dir][0] == colourEnemy || my_brett[zeile + dir][spalte - dir][0] == toupper(colourEnemy))){
             printf("in zweitem jump ");
             printf("my_brett[%i][%i] = %c\n", zeile + dir, spalte - dir, my_brett[zeile + dir][spalte - dir][0]);
             //return possible_moves;
 
 
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            if(my_brett[zeile + 2*dir][spalte - 2*dir][0] == '-'){
+            if(my_brett[zeile + dir + dir][spalte - dir - dir][0] == '-'){
                 war_hier = TRUE;
 
                 //hier jumpfkt
@@ -158,9 +161,10 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
 
             dirStein2 = TRUE;
         }
+        printf("before If dritter jump\n");
         //springe falls schwarz nach unten rechts
-        if ((my_brett[zeile - dir][spalte + dir][0] == colourEnemy || my_brett[zeile - dir][spalte + dir][0] == toupper(colourEnemy))
-            && (zeile - 2*dir) <9 && (zeile - 2*dir) >0 && (spalte + 2*dir) <9 && (spalte + 2*dir) >0){
+        if ((zeile - dir -dir) <9 && (zeile - dir - dir) >0 && (spalte + dir + dir) <9 && (spalte + dir + dir) >0 
+            && (my_brett[zeile - dir][spalte + dir][0] == colourEnemy || my_brett[zeile - dir][spalte + dir][0] == toupper(colourEnemy))){
             printf("in dritten jump ");
             printf("my_brett[%i][%i] = %c\n", zeile - dir, spalte + dir, my_brett[zeile - dir][spalte + dir][0]);
             //return possible_moves;
@@ -174,9 +178,10 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
                 printf("nach calculate jmp\n");
             }
         }
+        printf("before If vierter jump\n");
         //springe falls schwarz nach unten links
-        if ((my_brett[zeile - dir][spalte - dir][0] == colourEnemy || my_brett[zeile - dir][spalte - dir][0] == toupper(colourEnemy))
-            && (zeile - 2*dir) <9 && (zeile - 2*dir) >0 && (spalte - 2*dir) <9 && (spalte - 2*dir) >0){
+        if ((zeile - 2*dir) <9 && (zeile - 2*dir) >0 && (spalte - 2*dir) <9 && (spalte - 2*dir) >0 
+            && (my_brett[zeile - dir][spalte - dir][0] == colourEnemy || my_brett[zeile - dir][spalte - dir][0] == toupper(colourEnemy))){
             printf("in vierten jump ");
             printf("my_brett[%i][%i] = %c\n", zeile - dir, spalte - dir, my_brett[zeile - dir][spalte - dir][0]);
             //return possible_moves;
@@ -196,18 +201,19 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
         /*
          * Move Abfragen
          */
+        printf("before If war_hier\n");
         if (war_hier == FALSE) {
 
             if (dirStein1 == FALSE){
                 //Move falls oben rechts frei
-                if (my_brett[zeile + dir][spalte + dir][0] == '-' && (zeile + dir) <=8 && (zeile + dir) >0 && (spalte + dir) <=8 && (spalte + dir) >0){
+                if ((zeile + dir) >0 && (spalte + dir) <=8 && (spalte + dir) >0 && (zeile + dir) <=8 && my_brett[zeile + dir][spalte + dir][0] == '-'){
                     calculateMove(possible_moves, current_move, zeile, spalte, dir, dir);
                 }
             }
 
             if (dirStein2 == FALSE){
                 //Move falls oben links frei
-                if (my_brett[zeile + dir][spalte - dir][0] == '-' && (zeile + dir) <=8 && (zeile + dir) >0 && (spalte - dir) <=8 && (spalte - dir) >0){
+                if ((zeile + dir) <=8 && (zeile + dir) >0 && (spalte - dir) <=8 && (spalte - dir) >0 && my_brett[zeile + dir][spalte - dir][0] == '-'){
                     calculateMove(possible_moves, current_move, zeile, spalte, dir, -dir);
                 }
             }
@@ -215,8 +221,9 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
         }
     }
 
-    printMoves(possible_moves);
-    printf("\nReturning possible moves for piece (%i,%i)\n", zeile, spalte);
+    //printf("printing (%d) moves... zeile 223\n", *current_move);
+    //printMoves(possible_moves);
+    printf("\nReturning possible moves for piece (%d,%d)\n", zeile, spalte);
     //free(current_move);
     return possible_moves;
 }
@@ -226,7 +233,7 @@ void calculateDame(short** possible_move, short *current_move, short zeile, shor
 }
 
 void calculateMove(short** possible_moves, short *current_move, short zeile, short spalte, short addZeile, short addSpalte) {
-    short* move = calloc(6, sizeof(char));
+    short* move = calloc(6, sizeof(short));
     possible_moves[(*current_move)++] = move;
 
     printf("\nHallo ich bin in calculateMove()\n");
@@ -271,6 +278,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
 
     printf("Alloc memory for possible move...\n");
     short* move = calloc(27, sizeof(short));
+    possible_moves[(*current_move)++] = move;
     printf("position zum einspeichern festlegen: %d\n", *current_move);
     
 
@@ -282,8 +290,6 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
     move[3] = zeile  + addZeile  + addZeile; //neue zeile
     move[4] = spalte + addSpalte + addSpalte; //neue spalte
 
-    possible_moves[(*current_move)++] = move;
-
     printf("recursive call of getPossibleMovesForPiece...\n");
     //[[-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...]
     printf("move vor rekursionsaufruf: %d\n", move[0]);
@@ -293,6 +299,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
     printf("move vor rekursionsaufruf: %d\n", move[4]);
     //printMove(move);
     short** next_possible_moves = getPossibleMovesForPiece(zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, TRUE);
+    printf("nach rekursionsaufruf zeile 301\n");
     // -1,  5, 6,  7, 8                 // -1  7, 8,  8, 9          // -1  8, 9,  6, 5
     // -1,  5, 6,  7, 8,  8, 9,  6, 5   <- -1  7, 8,  8, 9,  6, 5   <-
 
@@ -312,6 +319,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
         {
             //Speichere Teilzug in move
             move[k] = next_move[j];
+            printf("next_move[%d]:%d\n", j, next_move[j]);
             k++;
             j++;
         }
@@ -329,7 +337,8 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
         move[4] = spalte + addSpalte + addSpalte; //neue spalte
     }
 
-    printf("returning calculateJump fkt...\n");
+    printf("returning calculateJump fkt...zeile 340\n");
+    //printMoves(possible_moves);
     free(next_possible_moves);
 }
 
@@ -337,7 +346,7 @@ void printAllMoves(short*** all_moves) {
     printf("All Moves: [\n");
 
     for (short i = 0; i < 12; i++) {
-        printMoves(all_moves[i]);
+        //printMoves(all_moves[i]);
     }
 
     printf("]\n");
@@ -347,13 +356,17 @@ void printAllMoves(short*** all_moves) {
 void printMoves(short** possible_moves) {
     printf("  Possible Moves: [\n");
 
-    for (short i = 0; i < 5; i++) {
+    for (short i = 0; i < 4; i++) {
         //if (possible_moves+i != NULL) {
+            printf("  vor moves = ...\n");
+            //printf("possible_moves[%d]:%d zeile 361\n", i, *possible_moves[i]);
             short* moves = possible_moves[i];
-
+            printf("  vor if\n");
             if (moves != NULL && *moves != 0) {
+                printf("  in if\n");
                 printMove(moves);
             }
+            printf("  nach if\n");
         //}
     }
 
