@@ -53,13 +53,8 @@ char* getMove(char my_brett[9][9][13]){
             if(my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)){
                 short** possible_moves = getPossibleMovesForPiece(i,j, my_brett, FALSE);
                 
-<<<<<<< HEAD
-                if (possible[0][0] != -200) {
-                    saveMoves[counter] = (short**) possible;
-=======
                 if (possible_moves[0][0] != -200) {
                     saveMoves[counter] = possible_moves;
->>>>>>> 7c26b9b2f933b894be6c6ca979e1e679f1020021
                     counter++;
                 }
             }
