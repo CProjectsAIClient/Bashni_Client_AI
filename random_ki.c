@@ -371,12 +371,6 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
     }
     free(next_possible_moves);
 }   printf("Possible Moves: [\n");
-            //printf("  vor moves = ...\n");
-            //printf("possible_moves[%d]:%d zeile 361\n", i, *possible_moves[i]);
-            short* moves = possible_moves[i];
-            //printf("  vor if\n");
-            if (moves != NULL && *moves != 0) {
-                //printf("  in if\n");
                 printMove(moves);
             }
             //printf("  nach if\n");
