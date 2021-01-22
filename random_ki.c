@@ -77,8 +77,9 @@ char* getMove(char my_brett[9][9][13]){
     
     int possible_moves_counter = 0, l = 0;
 
-    while (possible_moves[l++] != NULL) {
+    while ((l <counter) && possible_moves[l] != NULL) {
         possible_moves_counter++;
+        l++;
     }
 
     printf("possible_moves_counter: %d", possible_moves_counter);
