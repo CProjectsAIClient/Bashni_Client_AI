@@ -100,7 +100,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
     spalte = (short) spalte;
     zeile = (short) zeile;
     short dir = (colour == 'w') ? 1 : -1;
-    short ** possible_moves = calloc(18, sizeof(short));
+    short ** possible_moves = calloc(18, sizeof(short*));
     possible_moves[0] = malloc(sizeof(short));
     possible_moves[0][0] = -200;
     //possible_moves = NULL;
