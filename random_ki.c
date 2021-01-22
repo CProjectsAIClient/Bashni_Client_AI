@@ -44,7 +44,7 @@ void initialize_random_ki(struct game* game_struct){
 char* getMove(char my_brett[9][9][13]){
     //[[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5]], []]
     //short saveMoves [12][18][27]
-    short*** saveMoves = calloc(12, sizeof(short));
+    short*** saveMoves = calloc(12, sizeof(short**));
 
     int counter=0;
     short i,j,k;
