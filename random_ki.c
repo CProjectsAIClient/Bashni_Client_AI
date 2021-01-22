@@ -370,7 +370,30 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
         free(next_possible_moves[i]);
     }
     free(next_possible_moves);
-}   printf("Possible Moves: [\n");
+}
+
+void printAllMoves(short*** all_moves) {
+    printf("All Moves: [\n");
+
+    for (short i = 0; i < 12; i++) {
+        //printMoves(all_moves[i]);
+    }
+
+    printf("]\n");
+    free(all_moves);
+}
+
+void printMoves(short** possible_moves) {
+    printf("Possible Moves: [\n");
+
+    for (short i = 0; i < 4; i++) {
+        //if (possible_moves+i != NULL) {
+            //printf("  vor moves = ...\n");
+            //printf("possible_moves[%d]:%d zeile 361\n", i, *possible_moves[i]);
+            short* moves = possible_moves[i];
+            //printf("  vor if\n");
+            if (moves != NULL && *moves != 0) {
+                //printf("  in if\n");
                 printMove(moves);
             }
             //printf("  nach if\n");
@@ -379,6 +402,7 @@ void calculateJump(short** possible_moves, short *current_move, char my_brett[9]
 
     printf("]\n");
 }
+
 
 void printMove(short* move) {
     printf("  [");
