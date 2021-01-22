@@ -53,7 +53,7 @@ char* getMove(char my_brett[9][9][13]){
             if(my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)){
                 short** possible = getPossibleMovesForPiece(i,j, my_brett, FALSE);
                 
-                if (possible_moves[0][0] != -200) {
+                if (possible[0][0] != -200) {
                     saveMoves[counter] = (short**) possible;
                     counter++;
                 }
@@ -77,7 +77,7 @@ char* getMove(char my_brett[9][9][13]){
     
     int possible_moves_counter = 0, l = 0;
 
-    while ((l <counter) && possible_moves[l] != NULL) {
+    while ((l <counter) && (possible_moves[l] != NULL)) {
         possible_moves_counter++;
         l++;
     }
@@ -225,7 +225,7 @@ short** getPossibleMovesForPiece(short zeile, short spalte, char my_brett [9][9]
     //printf("printing (%d) moves... zeile 223\n", *current_move);
     //printMoves(possible_moves);
     printf("\nReturning possible moves for piece (%d,%d)\n", zeile, spalte);
-    //free(current_move);
+    free(current_move);
     return possible_moves;
 }
 
