@@ -48,11 +48,12 @@ void initialize_random_ki(struct game* game_struct){
 char* getMove(char my_brett[9][9][13]){
     //[[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5]], []]
     short*** saveMoves = calloc(12, sizeof(short*));
+
     for(int i = 0; i < 12; i++){
         saveMoves[i] = calloc(18, sizeof(short*));
+
         for(int j = 0; j < 18; j++){
             saveMoves[i][j] = calloc(27, sizeof(short));
-            
         }
     }
     
@@ -61,6 +62,7 @@ char* getMove(char my_brett[9][9][13]){
     short i, j, k;
 
     printf("\n\n=== Mögliche Moves: ===\n");
+
     for (i = 1; i <= 8; i++) {
         for (j = 1; j <= 8; j++) {
             if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {
@@ -80,10 +82,10 @@ char* getMove(char my_brett[9][9][13]){
 
                     counter++;
                 }
-
             }
         }
     }
+
     printf("=======================\n\n");
 
     if (saveMoves[counter][0][0] == -200) {
@@ -121,6 +123,7 @@ char* getMove(char my_brett[9][9][13]){
         for (int j = 0; j < 18; j++) {
             free(saveMoves[i][j]);
         }
+
         free(saveMoves[i]);
     }
     free(saveMoves);
