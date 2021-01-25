@@ -87,7 +87,7 @@ char* getMove(char my_brett[9][9][13]){
         //Auf jump überprüfen
         if (saveMoves[m][0][0] == JUMP_RATING) {
             jumps[jump_counter] = m;
-            printf("FOUND JUMP!\n");
+            printf("└> FOUND JUMP!\n");
         }
     }
     printf("=======================\n\n");
