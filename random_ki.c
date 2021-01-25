@@ -11,9 +11,10 @@
 #include <time.h>
 #include <ctype.h>
 
-#define JUMP_RATING -1
-#define MOVE_RATING -2
-#define QUEEN_RATING 3
+#define MOVE_RATING -3
+#define JUMP_RATING -2
+#define GET_QUEEN_RATING -1
+#define JUMP_QUEEN_RATING 3
 
 #define TRUE 1
 #define FALSE 0
@@ -22,6 +23,8 @@ void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_
 void calculateDame(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
 void calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
 void calculateMove(short** possible_moves, short* current_move, short zeile, short spalte, short addZeile, short addSpalte);
+void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
+int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
 void printAllMoves(short*** all_moves);
 void printMoves(short** possible_moves);
 void printMove(short* move);
@@ -77,7 +80,7 @@ char* getMove(char my_brett[9][9][13]){
                     if (saveMoves[counter][0][0] == JUMP_RATING) {
                         jumps[jmpcounter] = counter;
                         jmpcounter++;
-                        printf("FOUND JUMP!\n");
+                        printf("└> FOUND JUMP!\n");
                     }
 
                     counter++;
@@ -92,26 +95,7 @@ char* getMove(char my_brett[9][9][13]){
         counter--;
     }
 
-<<<<<<< HEAD
-    int jumps[counter];
-    int jump_counter = 0;
-    printf("\n\n=== Mögliche Moves: ===\n");
-    for (int m = 0; m < counter; m++){
-        printf("Stein [%d]: ", m);
-        printMoves(saveMoves[m]);
-
-        //Auf jump überprüfen
-        if (saveMoves[m][0][0] == JUMP_RATING) {
-            jumps[jump_counter] = m;
-            printf("└> FOUND JUMP!\n");
-        }
-    }
-    printf("=======================\n\n");
-
-    printf("Picking random move from saveMoves...\n");
-=======
     printf("Picking random move from saveMoves (%d Jumps found)...\n", jmpcounter);
->>>>>>> 9b68c603e33aec2ffb600df39985aa3d5ee8f00d
     char* random_move;
     
     short x, isjump = FALSE;
@@ -156,8 +140,22 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
     possible_moves[0][0] = (short) -200;
 
     //pruefe auf dame
-    if (my_brett[zeile][spalte][0] == toupper(colour)){
-        calculateDame(possible_moves,&current_move,zeile,spalte,my_brett);
+    if (my_brett[zeile][spalte][0] == toupper(colour)){        
+        //Überprüfe auf Jump nach rechts oben
+        is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, dir) || is_jump;
+        //Überprüfe auf Jump nach links oben
+        is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, -dir) || is_jump;
+        //Überprüfe auf Jump nach rechts unten
+        is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, dir) || is_jump;
+        //Überprüfe auf Jump nach links unten
+        is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, -dir) || is_jump;
+
+        //calculateDame(possible_moves,&current_move,zeile,spalte,my_brett);
+        //ueberpruefe ob es einen jump gab, wenn nicht gehe in calculateDameMove:
+        if (!is_jump){
+            //berechnet mgl Moves der Dame
+            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett);
+        }
     }
     //normaler Stein
     else {
@@ -252,15 +250,107 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
     }
 }
 
-void calculateDame(short** possible_move, short *current_move, short zeile, short spalte, char my_brett[9][9][13]) {
+void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]) {
     printf("HALLO meine liebe Dame!\n\n");
+    printf("Ma'Lady\n");
+    
 }
 
+int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
+    printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
+
+    short i = zeile + addZeile, j = spalte + addSpalte;
+    while(( my_brett[i][j][0] == '-') && (addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3))){
+        i += addZeile;
+        j += addSpalte;
+    }
+    
+    if ((my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-') && (i<=7 && j<=7 && i>=2 && j>=2)) {
+        printf("in erster if in calculateDameJmp\n");
+        short* move = possible_moves[(*current_move)++];
+        if(my_brett[i][j][0] == colourEnemy){
+            move[0] = JUMP_RATING;
+        }else {
+            move[0] = JUMP_QUEEN_RATING;
+        }
+        
+        
+        move[1] = zeile;
+        move[2] = spalte;
+        move[3] = i+addZeile;
+        move[4] = j+addSpalte;
+        
+        //kopie des bretts
+        char new_brett[9][9][13];
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                for (int k = 0; k < 13; k++) {
+                    new_brett[i][j][k] = my_brett[i][j][k];
+                }
+            }
+        }
+
+        //Alte Position leeren
+        new_brett[zeile][spalte][0] = '-';
+        //Übersprungene Position leeren
+        new_brett[i][j][0] = '-';
+        //neue position einspeichern
+        new_brett[i+addZeile][j+addSpalte][0] = my_brett[zeile][spalte][0];
+
+        short** next_possible_moves = calloc(18, sizeof(short*));
+        for (int i = 0; i < 18; i++) {
+            next_possible_moves[i] = calloc(27, sizeof(short));
+        }
+        getPossibleMovesForPiece(next_possible_moves, i+ addZeile, j + addSpalte, new_brett, TRUE);
+
+
+        int i = 0;// 12 34 78 910 spielbrett // -1 12 34 78 ??// -1 34 78 910// -1 78 910
+        short *next_move = next_possible_moves[i];
+
+        //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
+        while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] == JUMP_RATING || next_move[0] == JUMP_QUEEN_RATING)) {
+            int j = 3, k = 5;
+            next_move = next_possible_moves[i++];
+
+            //Gehe durch alle Teilzüge von next_move
+            while (next_move[j] > 0)
+            {
+                //Speichere Teilzug in move
+                move[k] = next_move[j];
+                k++;
+                j++;
+            }
+
+            //Erstelle einen neuen Zug
+            move = possible_moves[(*current_move)++];
+
+            //setze die default Werte für den neuen Zug
+            move[0] = JUMP_RATING; // jump
+            move[1] = zeile; //alte zeile
+            move[2] = spalte; //alte spalte
+
+            move[3] = zeile + addZeile + addZeile; //neue zeile
+            move[4] = spalte + addSpalte + addSpalte; //neue spalte
+
+            for(int k = 0; i < 18; k++) {
+                free(next_possible_moves[k]);
+            }
+            free(next_possible_moves);
+        }
+
+
+        
+
+        return TRUE;
+    }
+    
+    return FALSE;
+}
 void calculateMove(short** possible_moves, short *current_move, short zeile, short spalte, short addZeile, short addSpalte) {
     short* move = possible_moves[(*current_move)++];
 
     if ((zeile + addZeile == 8 && colour == 'w') || (zeile + addZeile == 1 && colour == 'b')){
-        move[0] = QUEEN_RATING;//ist Dame geworden
+        move[0] = GET_QUEEN_RATING;//ist Dame geworden
     } else {
         move[0] = MOVE_RATING;//move
     }
@@ -397,9 +487,7 @@ char* translateMove(short* moves) {
     //arr = "PLAY ";
     strcpy(arr, "PLAY ");
     short i = 1, j = 5;
-    while(moves[i] != 0){
-        printf("translate while through (%d, %d)\n", moves[i], moves[i+1]);
-        
+    while(moves[i] != 0){        
         arr[j]   = 'A' - 1 + moves[i+1];
         arr[j+1] = '0'     + moves[i];
         arr[j+2] = ':';
@@ -413,3 +501,4 @@ char* translateMove(short* moves) {
 }
 
 //1vrh39df3qaaq
+//HellO!
