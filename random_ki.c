@@ -229,7 +229,7 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
 }
 
 void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
-    printf("HALLO meine liebe Dame!\n\n");
+    printf("trying to calculate Dame Move from (%d, %d) with addZeile: %d, addSpalte %d\n", zeile, spalte, addZeile, addSpalte);
     printf("Ma'Lady\n");
     short i = zeile, j = spalte;
 
@@ -243,17 +243,25 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
         move[2] = spalte;
         move[3] = i;
         move[4] = j;
+        
+        printf("Found Dame Move: ");
+        printMove(move);
     }
 }
 
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
 
-    short i = zeile, j = spalte;
-    while(( my_brett[i][j][0] == '-') && (addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3))){
+    if((addZeile > 0 ? (zeile<=6) : (zeile>=3)) && (addSpalte > 0 ? (spalte<=6) : (spalte>=3))){
+        printf("true\n");
+    }
+    short i = zeile + addZeile, j = spalte + addSpalte;
+    while((addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3)) && (my_brett[i][j][0] == '-')){
+        printf("i: %d und j: %d\n", i,j);
         i += addZeile;
         j += addSpalte;
     }
+    printf("i: %d und j: %d\n", i,j);
     
     if ((my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-') && (i<=7 && j<=7 && i>=2 && j>=2)) {
         printf("in erster if in calculateDameJmp\n");
@@ -310,6 +318,8 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
                 j++;
             }
 
+            printf("Found Dame Jump: ");
+            printMove(move);
             //Erstelle einen neuen Zug
             move = possible_moves[(*current_move)++];
 
@@ -322,7 +332,7 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
             move[4] = spalte + addSpalte + addSpalte; //neue spalte
         }
 
-        for(int k = 0; i < 18; k++) {
+        for(int k = 0; k < 18; k++) {
             free(next_possible_moves[k]);
         }
         free(next_possible_moves);
@@ -349,7 +359,7 @@ void calculateMove(short** possible_moves, short *current_move, short zeile, sho
 }
 
 int calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte) {
-    if(my_brett[zeile - 2*addZeile][spalte - 2*addSpalte][0] != '-'){
+    if(my_brett[zeile + 2*addZeile][spalte + 2*addSpalte][0] != '-'){
         return FALSE;
     }
 
