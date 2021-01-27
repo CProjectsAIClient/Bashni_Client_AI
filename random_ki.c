@@ -23,7 +23,7 @@ void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_
 void calculateDame(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
 void calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
 void calculateMove(short** possible_moves, short* current_move, short zeile, short spalte, short addZeile, short addSpalte);
-void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
+void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
 int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
 void printAllMoves(short*** all_moves);
 void printMoves(short** possible_moves);
@@ -153,8 +153,14 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
         //calculateDame(possible_moves,&current_move,zeile,spalte,my_brett);
         //ueberpruefe ob es einen jump gab, wenn nicht gehe in calculateDameMove:
         if (!is_jump){
-            //berechnet mgl Moves der Dame
-            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett);
+            //berechnet mgl Moves nach oben rechts
+            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett, dir, dir);
+            //berechnet mgl Moves nach oben links
+            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett, dir, -dir);
+            //berechnet mgl Moves nach unten rechts
+            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett, -dir, dir);
+            //berechnet mgl Moves nach unten links
+            calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett, -dir, -dir);
         }
     }
     //normaler Stein
@@ -250,16 +256,28 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
     }
 }
 
-void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]) {
+void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
     printf("HALLO meine liebe Dame!\n\n");
     printf("Ma'Lady\n");
-    
+    short i = zeile, j = spalte;
+
+    while(( my_brett[i][j][0] == '-') && (addZeile > 0 ? (i<=8) : (i>=1)) && (addSpalte > 0 ? (j<=7) : (j>=2))){
+        i += addZeile;
+        j += addSpalte;
+        
+        short* move = possible_moves[(*current_move)++];
+        move[0] = MOVE_RATING;
+        move[1] = zeile;
+        move[2] = spalte;
+        move[3] = i;
+        move[4] = j;
+    }
 }
 
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
 
-    short i = zeile + addZeile, j = spalte + addSpalte;
+    short i = zeile, j = spalte;
     while(( my_brett[i][j][0] == '-') && (addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3))){
         i += addZeile;
         j += addSpalte;
@@ -273,7 +291,6 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         }else {
             move[0] = JUMP_QUEEN_RATING;
         }
-        
         
         move[1] = zeile;
         move[2] = spalte;
@@ -337,9 +354,6 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
             }
             free(next_possible_moves);
         }
-
-
-        
 
         return TRUE;
     }
