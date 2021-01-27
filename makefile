@@ -29,3 +29,4 @@ play:
 
 test:
 	valgrind --leak-check=full --trace-children=yes ./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)
+
