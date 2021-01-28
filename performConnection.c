@@ -118,6 +118,7 @@ void doperformConnection(int *sock, char gameid[], int player, game *current_gam
 
     //Ende der Gegner
     myread(sock, buffer);
+    free(buffer);
 }
 
 char* myread(int *sock, char* buffer) {

@@ -1,5 +1,6 @@
 #include "thinker.h"
 #include "performConnection.h"
+#include "random_ki.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,22 +36,11 @@ void startThinker(void * shmdata1, int pipe) {
 
 void think() {
     printf("Berechne Spielzug...");
-    switch(ok){
-        case 1: 
-            sendToConnector("PLAY G3:H4");
-            ok++;
-            break;
-        case 2: 
-            sendToConnector("PLAY C3:D4");
-            ok++;
-            break;
-        case 3:
-            sendToConnector("PLAY D4:B6");
-            ok++;
-            break;
-        default:
-            break;
-    }
+
+    char* move = getMove(my_brett);
+    sendToConnector(move);
+
+    free(move);
 }
 
 void sendToConnector(char* message) {
@@ -109,6 +99,7 @@ void signal_handler(int signal_key) {
     //start komplizierte KI Berechnung
     printf("flag: %i\n", current_game->flag);
     if ((current_game->flag) == 1){
+        initialize_random_ki(current_game);
         think();
     }
     else{
@@ -168,7 +159,7 @@ void printfield(char print[9][9][13]) {
 
   
 
-  printf("White Pieces\n=======================\n");
+    printf("White Pieces\n=======================\n");
     char count;
     for(int i=1; i<=8; i++) {
         for(int z=1; z<=8; z++) {
