@@ -109,6 +109,8 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
         //ACHTUNG auf Gameover, wenn wir da ankommen
         else if(strcmp(buffer, "+ GAMEOVER") == 0) {
             onGameover(sock, current_game, buffer);
+
+            break;
         } 
         else if(strcmp(buffer, "+ OKTHINK") == 0){
             //Listening for incoming data
@@ -182,7 +184,6 @@ void registerFd(int epoll_fd, int fd) {
         exit(-1);
     }
 }
-
 
 struct epoll_event waitForInput(int epoll_fd) {
     struct epoll_event events[1];
