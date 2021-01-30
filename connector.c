@@ -215,6 +215,7 @@ struct epoll_event waitForInput(int epoll_fd) {
 
 void onGameover(int* sock, struct game* current_game, char* buffer) {
     //lese den Gewinner und erstell ein Array mit den Spielern und deren Status
+    sleep(1);
 
     int winner;
     for(int i = 0; i < current_game->player_count; i++) {
@@ -227,7 +228,7 @@ void onGameover(int* sock, struct game* current_game, char* buffer) {
     }
 
     printf("\n===================\n");
-    printf("%s (Player %d)!\n", current_game->player_number == winner ? "🎉 You won" : "😢 The Enemy won.\nYou lost", winner+1);
+    printf("%s\n", current_game->player_number == winner ? "🎉 You won!" : "😢 The Enemy won.\nYou lost.");
     printf("===================\n\n");
     
     //Quit
