@@ -156,3 +156,12 @@ void mywrite(int *sock, char *buffer){
     send(*sock, buff,strlen(buff), 0);
     printf("💻 C: %s", buff);
 }
+
+void printGame(game* current_game) {
+    printf("PiecesCount: %i, ", current_game->pieces_count);
+    printf("Gamename: %s, ", current_game->name);
+    printf("Playernummer: %d, ", current_game->player_number);
+    printf("Playeranzahl: %d, ", current_game->player_count);
+    printf("ThinkerID: %i, ", current_game->thinkerID);
+    printf("ConnectorID: %d\n\n", current_game->connectorID);
+}

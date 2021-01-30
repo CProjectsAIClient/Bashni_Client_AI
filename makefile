@@ -1,8 +1,8 @@
 OBJS    = performConnection.o config.o connector.o thinker.o random_ki.o
 OUT     = sysprak-client
 CC      = gcc
-FLAGS   = -Wall -Wextra -Werror -std=c99 -g
-O_FLAGS = -std=c99 -g
+FLAGS   = -Wall -Wextra -Werror -g
+O_FLAGS = -g
 
 all: main.c $(OBJS)
 	$(CC) -o $(OUT) $(FLAGS) main.c $(OBJS)

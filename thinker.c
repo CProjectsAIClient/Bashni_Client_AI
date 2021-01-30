@@ -33,6 +33,7 @@ void startThinker(void * shmdata1, int pipe) {
     
     //Signal Handler registrieren
     signal(SIGUSR1, signal_handler);
+    printf("Terminating thinker...\n");
 }
 
 void think() {
@@ -72,16 +73,8 @@ void signal_handler(int signal_key) {
         printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
         exit(-3);
     }
-    printf("shmat im Thinker funktioniert\n");
 
     memcpy(current_game, shmdata, sizeof(game));
-
-    printf("PiecesCount: %i, ", current_game->pieces_count);
-    printf("Gamename: %s, ", current_game->name);
-    printf("Playernummer: %d, ", current_game->player_number);
-    printf("Playeranzahl: %d, ", current_game->player_count);
-    printf("ThinkerID: %i, ", current_game->thinkerID);
-    printf("ConnectorID: %d\n\n", current_game->connectorID);
     
     int anzahlSteine = current_game->pieces_count;
     printf("AnzahlSteine: %i\n", anzahlSteine);
@@ -89,8 +82,6 @@ void signal_handler(int signal_key) {
     char currentBrett[anzahlSteine][5];
     memcpy(currentBrett, shmThinkerdata, sizeof(char) * anzahlSteine * 5);
 
-
-    
     reinitialize_brett_with_null();
 
     int i = 0;
@@ -108,17 +99,11 @@ void signal_handler(int signal_key) {
     printfield(my_brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
-    printf("flag: %i\n", current_game->flag);
     if ((current_game->flag) == 1){
         initialize_random_ki(current_game);
         think();
-    }
-    else{
-        //GAME OVER
 
-        printf("flag ist %i, gell?\n", current_game->flag);
-        int state;
-        signal(SIGUSR1, SIG_DFL);
+        signal(SIGUSR1, signal_handler);
     }
 }
 
@@ -206,5 +191,3 @@ void printfield(char print[9][9][13]) {
     }
     printf("\n");
 }
-
-//39gtsqqzfypr5

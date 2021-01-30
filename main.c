@@ -59,7 +59,6 @@ int main(int argc, char *argv[]) {
     //filedeskriptor erstellen
     int* sock = malloc(sizeof(int));
     *sock = makeConnection(game_conf);
-    
    
     //Erstellen eines SHM-Bereichs
     int memory_id = shmget(IPC_PRIVATE, sizeof(game), IPC_CREAT | 0666);
@@ -90,7 +89,10 @@ int main(int argc, char *argv[]) {
         //Error by creating the childprocess
         fprintf(stderr, "Fehler bei fork()\n"); 
     } else if (pid == 0){
-        //Childprocess (Connector process)
+        /*
+         * Childprocess 
+         * (Connector process)
+         */
 
         //Pipe Schreibseite schließen
         close(pipe_fd[1]);
@@ -103,13 +105,14 @@ int main(int argc, char *argv[]) {
         //Prolog Phase
         doperformConnection(sock, gameid, playerid, shmdata);
         //Epoll für pipe und socket initialisieren
-        startConnector(*sock, pipe_fd[0]);
-
+        startConnector(sock, &pipe_fd[0]);
         //Spielverlauf Phase + kommuniktion zwischen server und thinker herstellen
         doSpielVerlauf(sock, playerid, shmdata);
-        exit(0);
     } else {
-        //Parentprocess (Thinker process)
+        /*
+         * Parentprocess 
+         * (Thinker process)
+         */
 
         //Pipe Leseseite schließen
         close(pipe_fd[0]);
@@ -117,43 +120,29 @@ int main(int argc, char *argv[]) {
         //Signal Handler initialisieren
         startThinker(shmdata, pipe_fd[1]);
 
-        //Game Struktur initialisieren
-        //game *current_game = (game*) shmdata;
-
-        // int state;
-        // pid_t got_pid = waitpid(pid,&state,0);
-        // //warten auf kindprozess
-        // if (got_pid  < 0){
-        //     perror("Fehler beim Warten auf den Connector\n");
-        // }
-
-        // printf("(%ld) got_pid=%d\n", time(0), got_pid);   // 2
-        // printf("(%ld) WIFEXITED: %d\n", time(0), WIFEXITED(state));  // 3
-        // printf("(%ld) WEXITSTATUS: %d\n", time(0), WEXITSTATUS(state)); // 4
-        // printf("(%ld) Done from parent\n", time(0));
-        int x = wait(NULL);
-        // int x = wait((pid_t) 0);
-        if( x < 0){
-            printf("Fehler beim Warten auf den Connector\n");
+        //Auf Connector Prozess warten, falls noch nicht terminiert
+        pid_t waiting = waitpid(pid, NULL, 0);
+        if (waiting > 0) {
+            printf("Es wurde kein Prozess gefunden auf den gewartet werden konnte. Terminieren...");
+        } else {
+            printf("Es wurde auf Prozess %d gwartet.", waiting);
         }
-        printf("x: %i\n",x);
 
         clock_t end = clock();
         float seconds = (float)(end - start) / CLOCKS_PER_SEC;
         printf("\nWHOLE TIME SPENT: %f\n\n", seconds);
     }
 
-
     shmdt(shmdata);
 
     free(game_conf.gametype);
     free(game_conf.hostname);
     free(sock);
-    //sleep(2);
+
+    printf("\nTERMINATING PROCESS WITH ID %d\n\n", pid);
     return EXIT_SUCCESS;
 }
 
-//fancy :)
 void printWelcome() {
     printf("\n /$$$$$$$                      /$$                 /$$          /$$$$$$  /$$ /$$                       /$$    ");
     printf("\n| $$__  $$                    | $$                |__/         /$$__  $$| $$|__/                      | $$    ");
@@ -164,5 +153,3 @@ void printWelcome() {
     printf("\n| $$$$$$$/|  $$$$$$$ /$$$$$$$/| $$  | $$| $$  | $$| $$        |  $$$$$$/| $$| $$|  $$$$$$$| $$  | $$  |  $$$$/");
     printf("\n|_______/  \\_______/|_______/ |__/  |__/|__/  |__/|__/         \\______/ |__/|__/ \\_______/|__/  |__/   \\___/  \n\n");
 }
-
-//25ovzcttru6q5

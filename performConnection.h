@@ -44,4 +44,6 @@ char* myread(int *sock, char* buffer);
 
 void mywrite(int *sock, char *buffer);
 
+void printGame(game* current_game);
+
 #endif

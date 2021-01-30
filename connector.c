@@ -30,10 +30,10 @@ void onGameover(int* sock, game* current_game, char* buffer);
 int epoll_fd, pipe_fd;
 
 // epoll(): https://suchprogramming.com/epoll-in-3-easy-steps/
-void startConnector(int fd_sock, int fd_pipe) {
+void startConnector(int* fd_sock, int* fd_pipe) {
     //Create Epoll instance
     epoll_fd = epoll_create1(0);
-    pipe_fd = fd_pipe; 
+    pipe_fd = *fd_pipe; 
     //Create Pipe read buffer
 
     if(epoll_fd == -1) {
@@ -42,9 +42,9 @@ void startConnector(int fd_sock, int fd_pipe) {
     }
 
     //Add socket File descriptor to epoll for listening
-    registerFd(epoll_fd, fd_sock);
+    registerFd(epoll_fd, *fd_sock);
     //Add pipe File descriptor to epoll for listening
-    registerFd(epoll_fd, fd_pipe);
+    registerFd(epoll_fd, *fd_pipe);
 }
 
 void doSpielVerlauf(int *sock, int player, struct game *current_game) {
@@ -90,12 +90,10 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
     saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game);
 
     if (!continue_run) {
-        printf("!continue_run\n");
         onGameover(sock, current_game, buffer);
     }
 
     while(continue_run){
-        printf("continue_run\n");
         myread(sock, buffer);
 
         //Wait Befehlsequenz
@@ -115,21 +113,12 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
         }
         //ACHTUNG auf Gameover, wenn wir da ankommen
         else if(strcmp(buffer, "+ GAMEOVER") == 0) {
+            //Anzahl der Spielsteine lesen
             sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
-
-            int i = current_game->pieces_count;
-            while(i>0){
-                myread(sock, buffer);
-                i--;
-            }
-            //End pieces list
-            myread(sock, buffer);
 
             current_game->flag = 0;
             saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game); 
-
             onGameover(sock, current_game, buffer);
-            //exit(0);
             break;
         } 
         else if(strcmp(buffer, "+ OKTHINK") == 0){
@@ -164,18 +153,16 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
     free(buffer);
     shmdt(shmConnectordata);
     printf("Terminating connector...\n");
-    //exit(0);
 }
 
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * current_game) {
     char* buffer = malloc(BUF * sizeof(char));
-    printf("\nprint2\n");
     char currentBrett[feldgr][5];
+
     //lese die 24 Steine
-    printf("\n%i felder total\n", feldgr);
     int i = 0;
     int feldgr_copy = feldgr;
-    while(feldgr>0){
+    while (feldgr > 0) {
         myread(sock, buffer);
         strcpy(currentBrett[i], buffer + 2);
         i++;
@@ -227,33 +214,22 @@ struct epoll_event waitForInput(int epoll_fd) {
 }
 
 void onGameover(int* sock, struct game* current_game, char* buffer) {
-    //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
-    int nr_spieler = current_game->player_count;
-    
-    int i=0;
-    while(nr_spieler > 0){
-        char whoWonGame[nr_spieler + 1][40];
-        buffer = myread(sock, buffer);
-        strncpy(whoWonGame[i], buffer + 2, 7);
-        whoWonGame[i][6]++;
-        whoWonGame[i][7] = '\0';
-        if(*(buffer + 13) == 'Y'){
-            strcat(whoWonGame[i], " is the winner!\0"); 
+    //lese den Gewinner und erstell ein Array mit den Spielern und deren Status
+
+    int winner;
+    for(int i = 0; i < current_game->player_count; i++) {
+        char player[11], won[4];
+
+        sscanf(myread(sock, buffer), "+ %s %s", player, won);
+        if (strcmp(won, "Yes") == 0) {
+            winner = player[6] - 48;
         }
-        else{
-            strcat(whoWonGame[i], " has lost!\0");    
-        }
-        i++;
-        printf("%s\n", whoWonGame[i-1]);
-        nr_spieler--;
-        //exit(0);
-        
     }
+
+    printf("\n===================\n");
+    printf("%s (Player %d)!\n", current_game->player_number == winner ? "🎉 You won" : "😢 The Enemy won.\nYou lost", winner+1);
+    printf("===================\n\n");
     
     //Quit
     myread(sock, buffer);
-
-    //exit(0);
 }
-
-//2rrsbr7jnmnjv
