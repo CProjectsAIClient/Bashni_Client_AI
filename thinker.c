@@ -8,6 +8,7 @@
 #include <sys/shm.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 //ruft think auf
 void signal_handler(int signal_key);
@@ -37,8 +38,14 @@ void startThinker(void * shmdata1, int pipe) {
 void think() {
     printf("Berechne Spielzug...");
 
+    clock_t start = clock();
+
     char* move = getMove(my_brett);
     sendToConnector(move);
+
+    clock_t end = clock();
+    float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+    printf("TIME SPENT: %f\n\n", seconds);
 
     free(move);
 }

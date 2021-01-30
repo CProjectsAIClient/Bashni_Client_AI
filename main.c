@@ -7,6 +7,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "performConnection.h"
 #include "thinker.h"
@@ -17,7 +18,7 @@ void printWelcome();
 
 int main(int argc, char *argv[]) {
     printWelcome();
-
+    clock_t start = clock();
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
@@ -32,7 +33,8 @@ int main(int argc, char *argv[]) {
                 gameid = optarg;
                 break;
             case 'p':
-                playerid = atoi(optarg);
+                playerid = atoi(optarg) - 1;
+                //printf("playerid: %i/n", playerid);
                 break;
             case 'c':
                 konfig = optarg;
@@ -118,6 +120,10 @@ int main(int argc, char *argv[]) {
         if ((waitpid(pid,NULL,0)) < 0){
             perror("Fehler beim Warten auf den Connector\n");
         }
+
+        clock_t end = clock();
+        float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+        printf("\nWHOLE TIME SPENT: %f\n\n", seconds);
     }
 
 
@@ -126,7 +132,7 @@ int main(int argc, char *argv[]) {
     free(game_conf.gametype);
     free(game_conf.hostname);
     free(sock);
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -141,3 +147,5 @@ void printWelcome() {
     printf("\n| $$$$$$$/|  $$$$$$$ /$$$$$$$/| $$  | $$| $$  | $$| $$        |  $$$$$$/| $$| $$|  $$$$$$$| $$  | $$  |  $$$$/");
     printf("\n|_______/  \\_______/|_______/ |__/  |__/|__/  |__/|__/         \\______/ |__/|__/ \\_______/|__/  |__/   \\___/  \n\n");
 }
+
+//1ne81y03dezo8

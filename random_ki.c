@@ -32,7 +32,6 @@ void calculateDameMove(short** possible_move, short* current_move, short zeile, 
 int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
 int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
 int getDir(short addZeile, short addSpalte);
-void printAllMoves(short*** all_moves);
 void printMoves(short** possible_moves);
 void printMove(short* move);
 char* translateMove(short* moves);
@@ -41,7 +40,7 @@ char colour, colourEnemy;
 //char array[9][9][13];
 
 void initialize_random_ki(struct game* game_struct){
-    printf("farbe zuordnen\n");
+    //Farbe zuordnen
     if (game_struct->player_number == 0){
         colour = 'w';
         colourEnemy = 'b';
@@ -50,7 +49,6 @@ void initialize_random_ki(struct game* game_struct){
         colour = 'b';
         colourEnemy = 'w';
     }
-    printf("farbe zugeordnet: %c, Enemy: %c\n", colour, colourEnemy);
 }
 
 
@@ -95,21 +93,17 @@ char* getMove(char my_brett[9][9][13]){
             }
         }
     }
-
+    
     printf("=======================\n\n");
-    printf("counter am ende der for for: %d...\n", counter);
+
     if (saveMoves[counter-1][0][0] == -200) {
-        printf( "saveMoves[%d][0][0] = %d\n", counter-1, saveMoves[counter-1][0][0]);
         counter--;
     }
-
-    printf("Picking random move from %d saveMoves (%d Jumps found)...\n", counter, jmpcounter);
     char* random_move;
     
     short x, isjump = FALSE;
     if (jmpcounter == 0) {
         x = rand() % counter;
-        printf("x: %d\n", x);
     } else {
         short z = rand() % jmpcounter;
         x = jumps[z];
@@ -120,13 +114,8 @@ char* getMove(char my_brett[9][9][13]){
     while (saveMoves[x][possible_moves_counter][0] != 0) {
         possible_moves_counter++;
     }
-
-    printf("2. Picking random move from piece %d (possible moves: %d)...\n", x, possible_moves_counter);
     srand(time(NULL));
     short y = isjump ? 0 : rand() % possible_moves_counter;
-
-    printf("HELLO MOVE: ");
-    printMove(saveMoves[x][y]);
 
     random_move = translateMove(saveMoves[x][y]);
     printf("Translated move: %s\n", random_move);
@@ -149,21 +138,25 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
     possible_moves[0][0] = (short) -200;
 
     //pruefe auf dame
-    printf("jump_dir: %i\n", jump_dir);
     if (my_brett[zeile][spalte][0] == toupper(colour)){
+        printf("dir == %d\n", jump_dir);
         if (!is_jump || jump_dir != DIR_DOWN_LEFT) {
+            printf("if DIR_DOWN_LEFT\n");
             //Überprüfe auf Jump nach rechts oben
             is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_DOWN_RIGHT) {
+            printf("if DIR_DOWN_RIGHT\n");
             //Überprüfe auf Jump nach links oben
             is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, -dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_UP_LEFT) {
+            printf("if DIR_UP_LEFT\n");
             //Überprüfe auf Jump nach rechts unten
             is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_UP_RIGHT) {
+            printf("if DIR_UP_RIGHT\n");
             //Überprüfe auf Jump nach links unten
             is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, -dir) || is_jump;
         }
@@ -247,28 +240,20 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
         move[2] = spalte;
         move[3] = i;
         move[4] = j;
-        
-        printf("Found Dame Move: ");
-        printMove(move);
     }
 }
 
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
-
-    if((addZeile > 0 ? (zeile<=6) : (zeile>=3)) && (addSpalte > 0 ? (spalte<=6) : (spalte>=3))){
-        printf("true\n");
-    }
     short i = zeile + addZeile, j = spalte + addSpalte;
+
     while((addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3)) && (my_brett[i][j][0] == '-')){
         //printf("i: %d und j: %d\n", i,j);
         i += addZeile;
         j += addSpalte;
     }
-    printf("wir untersuchen ob auf i:%d und j:%d ein Gegner ist\n", i,j);
-    
+
     if ((my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-') && (i<=7 && j<=7 && i>=2 && j>=2)) {
-        printf("in erster if in calculateDameJmp\n");
         short* move = possible_moves[(*current_move)++];
         if(my_brett[i][j][0] == colourEnemy){
             move[0] = JUMP_RATING;
@@ -325,7 +310,6 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
                 j++;
             }
 
-            printf("Found Dame Jump: ");
             printMove(move);
             //Erstelle einen neuen Zug
             move = possible_moves[(*current_move)++];
@@ -370,7 +354,6 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
         return FALSE;
     }
 
-    printf("in jump function zeile: %d, spalte: %d, addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
     char new_brett [9][9][13];
     
     //kopie des bretts
@@ -404,15 +387,12 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
 
     move[3] = zeile  + addZeile  + addZeile; //neue zeile
     move[4] = spalte + addSpalte + addSpalte; //neue spalte
-
-    printf("recursive call of getPossibleMovesForPiece...\n");
     //[[-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...], [-1, neue_zeile, neue_spalte, ...]
     short** next_possible_moves = calloc(18, sizeof(short*));
     for (int i = 0; i < 18; i++) {
         next_possible_moves[i] = calloc(27, sizeof(short));
     }
     int getdir = getDir(addZeile, addSpalte);
-    printf("\ngetDir in Jmp: %d\n\n", getdir);
     getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, TRUE, getdir);
     
     // -1,  5, 6,  7, 8                 // -1  7, 8,  8, 9          // -1  8, 9,  6, 5
@@ -454,17 +434,6 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
     free(next_possible_moves);
 
     return TRUE;
-}
-
-void printAllMoves(short*** all_moves) {
-    printf("All Moves: [\n");
-
-    for (short i = 0; i < 12; i++) {
-        printMoves(all_moves[i]);
-    }
-
-    printf("]\n");
-    free(all_moves);
 }
 
 void printMoves(short** possible_moves) {
@@ -532,15 +501,16 @@ int jmpPossible(char my_brett [9][9][13], short zeile, short spalte, short addZe
 
 int getDir(short addZeile, short addSpalte) {
     if (addZeile > 0 && addSpalte > 0) {
-        return DIR_DOWN_LEFT;
+        return (colour == 'w') ? DIR_UP_RIGHT : DIR_DOWN_LEFT;
     } else if (addZeile > 0 && addSpalte < 0) {
-        return DIR_DOWN_RIGHT;
+        return (colour == 'w') ? DIR_UP_LEFT : DIR_DOWN_RIGHT;
     } else if (addZeile < 0 && addSpalte > 0) {
-        return DIR_UP_LEFT;
+        return (colour == 'w') ? DIR_DOWN_RIGHT : DIR_UP_LEFT;
     } else if (addZeile < 0 && addSpalte < 0) {
-        return DIR_UP_RIGHT;
+        return (colour == 'w') ? DIR_DOWN_LEFT : DIR_UP_RIGHT;
     }
 }
 
 //0ka9u0g4dx1m7
-//./sysprak-client -g 0ka9u0g4dx1m7 -p 0 -c client.conf
+//./sysprak-client -g 0edw4xfh25m72 -p 1 -c client.conf
+//valgrind --leak-check=full --trace-children=yes ./sysprak-client -g 3m3lxmpqx351a -p 1 -c client.conf
