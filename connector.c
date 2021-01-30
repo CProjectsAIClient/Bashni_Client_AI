@@ -117,9 +117,10 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
             struct epoll_event event = waitForInput(epoll_fd);
             
             //Checking from where data came
-            // if (event.data.fd == *sock) {
-            //     //Data came from socket (GameServer)
-            //     continue;
+            if (event.data.fd == *sock) {
+                //Data came from socket (GameServer)
+                continue;
+            }
             if (event.data.fd == pipe_fd) {
                 char* read_buffer = calloc(BUF , sizeof(char));
                 //Data came from pipe (Thinker)
@@ -173,12 +174,14 @@ void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * cur
 
 void registerFd(int epoll_fd, int fd) {
     //Create Epoll event for listening to incoming data on file descriptor fd
-    struct epoll_event event;
-    event.events = EPOLLIN;
-    event.data.fd = fd;
+    struct epoll_event ev = {
+        .events = EPOLLIN,
+        .data.fd = fd
+    };
 
     //Add event to epoll instance
-    if(epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event)) {
+    int x = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
+    if(x == -1) {
         perror("Failed to add file descriptor to epoll\n");
         close(epoll_fd);
         exit(-1);

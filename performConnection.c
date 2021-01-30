@@ -15,9 +15,9 @@
 #include "config.h"
 
 //liest Werte vom Server
-char* myread(int *sock, char* buffer);
+char* myread(int* sock, char* buffer);
 //schreibt Werte zum Server
-void mywrite(int * sock, char *buffer);
+void mywrite(int* sock, char* buffer);
 
 int makeConnection(game_config game_conf){
     //socket anlegen
