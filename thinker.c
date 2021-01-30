@@ -62,6 +62,10 @@ void sendToConnector(char* message) {
 void signal_handler(int signal_key) {
     struct game* current_game = shmdata;
     
+    if (current_game->flag == 0) {
+        sleep(0.5);
+    }
+
     //SHM für Spielbrett
     shmThinkerdata = shmat(current_game->shmFieldID,NULL,0);
     if(shmThinkerdata == (void *) -1) { //(char *)-1
@@ -78,7 +82,7 @@ void signal_handler(int signal_key) {
     printf("Playeranzahl: %d, ", current_game->player_count);
     printf("ThinkerID: %i, ", current_game->thinkerID);
     printf("ConnectorID: %d\n\n", current_game->connectorID);
-     
+    
     int anzahlSteine = current_game->pieces_count;
     printf("AnzahlSteine: %i\n", anzahlSteine);
 
@@ -111,8 +115,10 @@ void signal_handler(int signal_key) {
     }
     else{
         //GAME OVER
+
         printf("flag ist %i, gell?\n", current_game->flag);
-        exit(10);
+        int state;
+        signal(SIGUSR1, SIG_DFL);
     }
 }
 

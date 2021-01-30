@@ -58,10 +58,12 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
         current_game->flag = 1;
     } else if (strcmp(buffer, "+ GAMEOVER") == 0) {
         current_game->flag = 0;
+        continue_run = 0;
 
-        onGameover(sock, current_game, buffer);
-        free(buffer);
-        return;
+        //onGameover(sock, current_game, buffer);
+        //free(buffer);
+        // return;
+        //exit(0);
     } else {
         printf("Warten auf Spielzug des Gegners...\n");
 
@@ -82,13 +84,18 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
     if(shmConnectordata == (void *) -1) { //(char *)-1
         printf("Fehler beim Anbinden des SHM fuer das Feld\n");
         exit(-3);
-    }   
+    }
     
-    current_game->flag = continue_run;//1
+    current_game->flag = continue_run;
     saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game);
 
+    if (!continue_run) {
+        printf("!continue_run\n");
+        onGameover(sock, current_game, buffer);
+    }
 
     while(continue_run){
+        printf("continue_run\n");
         myread(sock, buffer);
 
         //Wait Befehlsequenz
@@ -104,12 +111,25 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
             printf("wert der flag %i\n", current_game->flag);
 
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
-            saveAndSendBrett(sock,shmConnectordata, current_game->pieces_count, current_game);
+            saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game);
         }
         //ACHTUNG auf Gameover, wenn wir da ankommen
         else if(strcmp(buffer, "+ GAMEOVER") == 0) {
-            onGameover(sock, current_game, buffer);
+            sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
 
+            int i = current_game->pieces_count;
+            while(i>0){
+                myread(sock, buffer);
+                i--;
+            }
+            //End pieces list
+            myread(sock, buffer);
+
+            current_game->flag = 0;
+            saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game); 
+
+            onGameover(sock, current_game, buffer);
+            //exit(0);
             break;
         } 
         else if(strcmp(buffer, "+ OKTHINK") == 0){
@@ -118,7 +138,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
             
             //Checking from where data came
             if (event.data.fd == *sock) {
-                //Data came from socket (GameServer)
+                //Data came from socket (GameServer)`
                 continue;
             }
             if (event.data.fd == pipe_fd) {
@@ -143,6 +163,8 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
 
     free(buffer);
     shmdt(shmConnectordata);
+    printf("Terminating connector...\n");
+    //exit(0);
 }
 
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * current_game) {
@@ -166,8 +188,10 @@ void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * cur
     memcpy(shmAddress, currentBrett, sizeof(char) * feldgr_copy * 5);
 
     //thinking schicken
-    mywrite(sock, "THINKING");
-    kill(getppid(), SIGUSR1);  
+    if(current_game->flag == 1){
+        mywrite(sock, "THINKING");
+    }
+    kill(getppid(), SIGUSR1);
 
     free(buffer);
 }
@@ -203,27 +227,10 @@ struct epoll_event waitForInput(int epoll_fd) {
 }
 
 void onGameover(int* sock, struct game* current_game, char* buffer) {
-
-    //Anzahl der Spielsteine lesen
-    sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
-
-    int i = current_game->pieces_count;
-    while(i>0){
-        myread(sock, buffer);
-        i--;
-    }
-    //End pieces list
-    myread(sock, buffer);
-
-    current_game->flag = 0;
-    //saveAndSendBrett(sock, shmConnectordata, current_game->pieces_count, current_game);
-
     //lese den Gewinner und erstell ein Array mit den Spielern und deren Status 
     int nr_spieler = current_game->player_count;
     
-    
-    
-    i=0;
+    int i=0;
     while(nr_spieler > 0){
         char whoWonGame[nr_spieler + 1][40];
         buffer = myread(sock, buffer);
@@ -239,17 +246,14 @@ void onGameover(int* sock, struct game* current_game, char* buffer) {
         i++;
         printf("%s\n", whoWonGame[i-1]);
         nr_spieler--;
+        //exit(0);
         
     }
-
+    
     //Quit
     myread(sock, buffer);
-    //free(buffer);
-    //char player0Won[BUF] = sscanf(buffer+13, "");
 
-    // if the game has ended, end the while loop
-    //continue_run = (strcmp(myread(sock, buffer), "+ QUIT") == 0);
-    //continue_run = 0;
+    //exit(0);
 }
 
 //2rrsbr7jnmnjv

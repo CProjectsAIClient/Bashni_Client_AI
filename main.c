@@ -106,7 +106,8 @@ int main(int argc, char *argv[]) {
         startConnector(*sock, pipe_fd[0]);
 
         //Spielverlauf Phase + kommuniktion zwischen server und thinker herstellen
-        doSpielVerlauf(sock, playerid, shmdata);        
+        doSpielVerlauf(sock, playerid, shmdata);
+        exit(0);
     } else {
         //Parentprocess (Thinker process)
 
@@ -116,10 +117,26 @@ int main(int argc, char *argv[]) {
         //Signal Handler initialisieren
         startThinker(shmdata, pipe_fd[1]);
 
-        //warten auf kindprozess
-        if ((waitpid(pid,NULL,0)) < 0){
-            perror("Fehler beim Warten auf den Connector\n");
+        //Game Struktur initialisieren
+        //game *current_game = (game*) shmdata;
+
+        // int state;
+        // pid_t got_pid = waitpid(pid,&state,0);
+        // //warten auf kindprozess
+        // if (got_pid  < 0){
+        //     perror("Fehler beim Warten auf den Connector\n");
+        // }
+
+        // printf("(%ld) got_pid=%d\n", time(0), got_pid);   // 2
+        // printf("(%ld) WIFEXITED: %d\n", time(0), WIFEXITED(state));  // 3
+        // printf("(%ld) WEXITSTATUS: %d\n", time(0), WEXITSTATUS(state)); // 4
+        // printf("(%ld) Done from parent\n", time(0));
+        int x = wait(NULL);
+        // int x = wait((pid_t) 0);
+        if( x < 0){
+            printf("Fehler beim Warten auf den Connector\n");
         }
+        printf("x: %i\n",x);
 
         clock_t end = clock();
         float seconds = (float)(end - start) / CLOCKS_PER_SEC;
@@ -132,7 +149,7 @@ int main(int argc, char *argv[]) {
     free(game_conf.gametype);
     free(game_conf.hostname);
     free(sock);
-
+    //sleep(2);
     return EXIT_SUCCESS;
 }
 
@@ -148,4 +165,4 @@ void printWelcome() {
     printf("\n|_______/  \\_______/|_______/ |__/  |__/|__/  |__/|__/         \\______/ |__/|__/ \\_______/|__/  |__/   \\___/  \n\n");
 }
 
-//1ne81y03dezo8
+//25ovzcttru6q5
