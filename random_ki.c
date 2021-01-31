@@ -36,9 +36,6 @@ void printMoves(short** possible_moves);
 void printMove(short* move);
 char* translateMove(short* moves);
 
-char colour, colourEnemy;
-//char array[9][9][13];
-
 void initialize_random_ki(struct game* game_struct){
     //Farbe zuordnen
     if (game_struct->player_number == 0){
@@ -246,14 +243,16 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile + addZeile, j = spalte + addSpalte;
-
+    // if(i>8 || i<1){
+    //     return;
+    // }
     while((addZeile > 0 ? (i<=6) : (i>=3)) && (addSpalte > 0 ? (j<=6) : (j>=3)) && (my_brett[i][j][0] == '-')){
         //printf("i: %d und j: %d\n", i,j);
         i += addZeile;
         j += addSpalte;
     }
 
-    if ((my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-') && (i<=7 && j<=7 && i>=2 && j>=2)) {
+    if ((i<=7 && j<=7 && i>=2 && j>=2) && (my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-')) {
         short* move = possible_moves[(*current_move)++];
         if(my_brett[i][j][0] == colourEnemy){
             move[0] = JUMP_RATING;
@@ -511,6 +510,7 @@ int getDir(short addZeile, short addSpalte) {
     }
 }
 
-//0ka9u0g4dx1m7
-//./sysprak-client -g 0edw4xfh25m72 -p 1 -c client.conf
-//valgrind --leak-check=full --trace-children=yes ./sysprak-client -g 3m3lxmpqx351a -p 1 -c client.conf
+//3amwjujtainsg
+
+//./sysprak-client -g  -p 1 -c client.conf
+//valgrind --leak-check=full --trace-children=yes ./sysprak-client -g  -p 1 -c client.conf
