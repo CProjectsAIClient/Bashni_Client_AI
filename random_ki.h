@@ -13,7 +13,7 @@
 
 void initialize_random_ki(struct game* game_struct);
 
-void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], int is_jump, int jump_dir);
+void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13],char piece_colour, int is_jump, int jump_dir);
 
 char* getMove(char my_brett[9][9][13]);
 

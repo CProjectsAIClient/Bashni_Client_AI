@@ -13,126 +13,133 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define MIN_MAX_DEPTH 10
+#define MIN_MAX_DEPTH 3
+//0c3fu3fyyfs1f
 
-void minMax(short zeile, short spalte, int depth, char colour);
+int minMax(char brett[9][9][13], int depth, int maxPlayer);
 void getLastPosition(short* next_move, short* childPos);
 double evaluate_position();
-
+short finalMove [27];
 
 char* getBestMove(char my_brett[9][9][13]) {
-    //[[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5]], []]
-    short*** saveMoves = calloc(12, sizeof(short*));
-
-    for(int i = 0; i < 12; i++){
-        saveMoves[i] = calloc(18, sizeof(short*));
-
-        for(int j = 0; j < 18; j++){
-            saveMoves[i][j] = calloc(27, sizeof(short));
-        }
-    }
-    
-    int counter;
-    short i, j, k;
-
-    for (i = 1; i <= 8; i++) {
-        for (j = 1; j <= 8; j++) {
-            if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {                
-                if (saveMoves[counter][0][0] != -200) {
-                    printf("Stein [%d]: ", counter);
-                    minMax(i, j, MIN_MAX_DEPTH, 1);
-                    //printMoves(saveMoves[counter]);
-
-                    //Auf jump überprüfen
-                    counter++;
-                }
-            }
-        }
-    }
-
-    //char* best_move = translateMove(saveMoves[x][y]);
-    //printf("Translated move: %s\n", best_move);
-
-    for (int i = 0; i < 12; i++) {
-        for (int j = 0; j < 18; j++) {
-            free(saveMoves[i][j]);
-        }
-
-        free(saveMoves[i]);
-    }
-    free(saveMoves);
-
-    //spaeter noch richtigen best move einspeichern
-     char* best_move = "w";
-
+    printf("getBestMove aufgerufen\n");
+    int i;
+    i= minMax(my_brett, MIN_MAX_DEPTH, 1);
+    printf("nach minMax eval: %d\n",i);
+    printf("finalMove: %hn\n", finalMove);
+    char* best_move = translateMove(finalMove);
+    printf("move: %s\n", best_move);
     return best_move;
 }
 
-short* finalMove;
 
-int minMax(short zeile, short spalte, char my_brett[9][9][13], int depth, int maximizingPlayer){
+
+int minMax(char my_brett[9][9][13], int depth, int maximizingPlayer){
     double evaluation = 0;
     double maxEval, minEval;
-                    
-
+    //printf("depth: %i\n", depth);
     if (depth == 0){
-        // Bewertung
-        game over in pos;
+        //printf("in der if von depth\n");
         evaluation = evaluate_position(my_brett);
         return evaluation;
     }
 
-    short** possible_moves = calloc(18, sizeof(short*));
-    for (int i = 0; i < 18; i++) {
-        possible_moves[i] = calloc(27, sizeof(short));
-    }
-    getPossibleMovesForPiece(possible_moves, zeile, spalte, my_brett, false, 0);
+    if (maximizingPlayer){
+        //printf("minMax: maximizingPlayer, going through pieces\n");
+        maxEval = - INFINITY;
 
-    if (possible_moves[0][0] != -200) {
-        //...
+        for (int i = 1; i <= 8; i++) {
+            //printf("in erster for: i = %d\n" ,i);
+            for (int j = 1; j <= 8; j++) {
+                //printf("in zweiter for: j = %d\n" ,j);
+                if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {
+                    //printf(" (%d, %d)", i, j);
 
-        if (maximizingPlayer){
-            maxEval = - INFINITY;
+                    short** possible_moves = calloc(18, sizeof(short*));
+                    for (int k = 0; k < 18; k++) {
+                        possible_moves[k] = calloc(27, sizeof(short));
+                    }
+                    getPossibleMovesForPiece(possible_moves, i, j, my_brett, colour, false, 0);
 
-            int i = 0;
-            short *next_move = possible_moves[i];
+                    int l = 0;
+                    short *next_move = possible_moves[l];
 
-            //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
-            while ((next_move != NULL) && (next_move[0] != -200) && (i<18)) {
-                short* childPos = calloc(2, sizeof(short));
-                getLastPosition(next_move, childPos);
+                    //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
+                    while ((next_move != NULL) && (next_move[0] != -200) && (l<18)) {
+                        
+                        short* childPos = calloc(2, sizeof(short));
+                        getLastPosition(next_move, childPos);
 
-                int eval = minMax(childPos[0], childPos[1], my_brett, depth-1, 0);
-                maxEval = fmax(maxEval,eval);
+                        int eval = minMax(my_brett, depth-1, 0);
+                        maxEval = maxEval<eval ? eval : maxEval;
+                        if(eval == maxEval){
+                            for(int p = 0;p<27;p++){
+                                finalMove[p] = next_move[p];
+                            }
+                        }
 
-                next_move = possible_moves[++i];
-                free(childPos);
+                        next_move = possible_moves[++l];
+                        free(childPos);
+                    }
+
+                    for(int k = 0; k < 18; k++) {
+                        free(possible_moves[k]);
+                    }
+                    free(possible_moves);
+                    //printf("\n");
+                }
             }
+        }
 
-            return maxEval;
-
+        if (maxEval == -INFINITY) {
+            return evaluate_position(my_brett);
         } else {
-            minEval = INFINITY;
-
-            int i = 0;
-            short *next_move = possible_moves[i];
-
-            while ((next_move != NULL) && (next_move[0] != -200) && (i<18)) {
-                short* childPos = calloc(2, sizeof(short));
-                getLastPosition(next_move, childPos);
-
-                int eval = minMax(childPos[0], childPos[1], my_brett, depth-1, 1);
-                minEval = fmin(minEval,eval);
-
-                next_move = possible_moves[++i];
-                free(childPos);
-            }
-
-            return minEval;
+            return maxEval;
         }
     } else {
-        return 0;//?
-    } 
+        //printf("minMax: minimizingPlayer, going through pieces\n");
+        minEval = INFINITY;
+
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                if (my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) {
+                    //printf(" (%d, %d)", i, j);
+
+                    short** possible_moves = calloc(18, sizeof(short*));
+                    for (int k = 0; k < 18; k++) {
+                        possible_moves[k] = calloc(27, sizeof(short));
+                    }
+                    getPossibleMovesForPiece(possible_moves, i, j, my_brett, colourEnemy, false, 0);
+
+                    int l = 0;
+                    short *next_move = possible_moves[l];
+
+                    while ((next_move != NULL) && (next_move[0] != -200) && (i<18)) {
+                        short* childPos = calloc(2, sizeof(short));
+                        getLastPosition(next_move, childPos);
+
+                        int eval = minMax(my_brett, depth-1, 1);
+                        minEval = eval<minEval ? eval : minEval;
+
+                        next_move = possible_moves[++l];
+                        free(childPos);
+                    }
+
+                    for(int k = 0; k < 18; k++) {
+                        free(possible_moves[k]);
+                    }
+                    free(possible_moves);
+                    //printf("\n");
+                }
+            }
+        }
+
+        if (maxEval == INFINITY) {
+            return evaluate_position(my_brett);
+        } else {
+            return minEval;
+        }
+    }
 }
 
 double evaluate_position(char my_brett[9][9][13]){

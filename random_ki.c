@@ -24,12 +24,12 @@
 #define TRUE 1
 #define FALSE 0
 
-void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], int is_jump, int jump_dir);
+void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir);
 void calculateDame(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
-int calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
-void calculateMove(short** possible_moves, short* current_move, short zeile, short spalte, short addZeile, short addSpalte);
+int calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
+void calculateMove(short** possible_moves, short* current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
 void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
-int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
+int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte);
 int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
 int getDir(short addZeile, short addSpalte);
 void printMoves(short** possible_moves);
@@ -72,7 +72,7 @@ char* getMove(char my_brett[9][9][13]){
         for (j = 1; j <= 8; j++) {
             if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {
                 short move[12];
-                getPossibleMovesForPiece(saveMoves[counter], i, j, my_brett, FALSE, 0);
+                getPossibleMovesForPiece(saveMoves[counter], i, j, my_brett, colour, FALSE, 0);
                 
                 if (saveMoves[counter][0][0] != -200) {
                     printf("Stein [%d]: ", counter);
@@ -130,8 +130,8 @@ char* getMove(char my_brett[9][9][13]){
 }
 
 //berechnet mgl Zuege fuer einen Stein
-void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[9][9][13], int is_jump, int jump_dir){
-    short dir = (colour == 'w') ? 1 : -1, current_move = 0;
+void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir){
+    short dir = (piece_color == 'w') ? 1 : -1, current_move = 0;
     possible_moves[0][0] = (short) -200;
 
     //pruefe auf dame
@@ -140,22 +140,22 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
         if (!is_jump || jump_dir != DIR_DOWN_LEFT) {
             printf("if DIR_DOWN_LEFT\n");
             //Überprüfe auf Jump nach rechts oben
-            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, dir) || is_jump;
+            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, piece_color, dir, dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_DOWN_RIGHT) {
             printf("if DIR_DOWN_RIGHT\n");
             //Überprüfe auf Jump nach links oben
-            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, dir, -dir) || is_jump;
+            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, piece_color, dir, -dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_UP_LEFT) {
             printf("if DIR_UP_LEFT\n");
             //Überprüfe auf Jump nach rechts unten
-            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, dir) || is_jump;
+            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, piece_color, -dir, dir) || is_jump;
         }
         if (!is_jump || jump_dir != DIR_UP_RIGHT) {
             printf("if DIR_UP_RIGHT\n");
             //Überprüfe auf Jump nach links unten
-            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, -dir, -dir) || is_jump;
+            is_jump = calculateDameJump(possible_moves, &current_move, zeile, spalte, my_brett, piece_color, -dir, -dir) || is_jump;
         }
         
         //ueberpruefe ob es einen jump gab, wenn nicht gehe in calculateDameMove:
@@ -180,24 +180,24 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
         //springe falls schwarz nach oben rechts
         if (jmpPossible(my_brett, zeile, spalte, dir, dir)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            didJump = calculateJump(possible_moves, &current_move, my_brett, zeile, spalte, dir, dir);
+            didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, dir);
             dirUpperRight = TRUE;
         }
         //springe falls schwarz nach oben links
         if (jmpPossible(my_brett, zeile, spalte, dir, -dir)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            didJump = calculateJump(possible_moves, &current_move, my_brett, zeile, spalte, dir, -dir);
+            didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, -dir);
             dirUpperLeft = TRUE;
         }
         //springe falls schwarz nach unten rechts
         if (jmpPossible(my_brett, zeile, spalte, -dir, dir)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            didJump = calculateJump(possible_moves, &current_move, my_brett, zeile, spalte, -dir, dir);
+            didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, dir);
         }
         //springe falls schwarz nach unten links
         if (jmpPossible(my_brett, zeile, spalte, -dir, -dir)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
-            didJump = calculateJump(possible_moves, &current_move, my_brett, zeile, spalte, -dir, -dir);
+            didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, -dir);
         }
 
         /*
@@ -207,14 +207,14 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
             if (dirUpperRight == FALSE){
                 //Move falls oben rechts frei
                 if ((zeile + dir) >0 && (spalte + dir) <=8 && (spalte + dir) >0 && (zeile + dir) <=8 && my_brett[zeile + dir][spalte + dir][0] == '-'){
-                    calculateMove(possible_moves, &current_move, zeile, spalte, dir, dir);
+                    calculateMove(possible_moves, &current_move, piece_color, zeile, spalte, dir, dir);
                 }
             }
 
             if (dirUpperLeft == FALSE){
                 //Move falls oben links frei
                 if ((zeile + dir) <=8 && (zeile + dir) >0 && (spalte - dir) <=8 && (spalte - dir) >0 && my_brett[zeile + dir][spalte - dir][0] == '-'){
-                    calculateMove(possible_moves, &current_move, zeile, spalte, dir, -dir);
+                    calculateMove(possible_moves, &current_move, piece_color, zeile, spalte, dir, -dir);
                 }
             }
         }
@@ -240,7 +240,7 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
     }
 }
 
-int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
+int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile + addZeile, j = spalte + addSpalte;
     // if(i>8 || i<1){
@@ -252,9 +252,10 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         j += addSpalte;
     }
 
-    if ((i<=7 && j<=7 && i>=2 && j>=2) && (my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) && (my_brett[i + addZeile][j + addSpalte][0] == '-')) {
+    char piece_enemy_colour = (piece_color == 'w' ? 'b' : 'w');
+    if ((i<=7 && j<=7 && i>=2 && j>=2) && (my_brett[i][j][0] == piece_enemy_colour || my_brett[i][j][0] == toupper(piece_enemy_colour)) && (my_brett[i + addZeile][j + addSpalte][0] == '-')) {
         short* move = possible_moves[(*current_move)++];
-        if(my_brett[i][j][0] == colourEnemy){
+        if(my_brett[i][j][0] == piece_enemy_colour){
             move[0] = JUMP_RATING;
         }else {
             move[0] = JUMP_QUEEN_RATING;
@@ -289,7 +290,7 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         for (int i = 0; i < 18; i++) {
             next_possible_moves[i] = calloc(27, sizeof(short));
         }
-        getPossibleMovesForPiece(next_possible_moves, i+ addZeile, j + addSpalte, new_brett, TRUE, getDir(addZeile, addSpalte));
+        getPossibleMovesForPiece(next_possible_moves, i+ addZeile, j + addSpalte, new_brett, piece_color, TRUE, getDir(addZeile, addSpalte));
 
 
         int i = 0;// 12 34 78 910 spielbrett // -1 12 34 78 ??// -1 34 78 910// -1 78 910
@@ -332,10 +333,10 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
     
     return FALSE;
 }
-void calculateMove(short** possible_moves, short *current_move, short zeile, short spalte, short addZeile, short addSpalte) {
+void calculateMove(short** possible_moves, short *current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
     short* move = possible_moves[(*current_move)++];
 
-    if ((zeile + addZeile == 8 && colour == 'w') || (zeile + addZeile == 1 && colour == 'b')){
+    if ((zeile + addZeile == 8 && piece_color == 'w') || (zeile + addZeile == 1 && piece_color == 'b')){
         move[0] = GET_QUEEN_RATING;//ist Dame geworden
     } else {
         move[0] = MOVE_RATING;//move
@@ -348,7 +349,7 @@ void calculateMove(short** possible_moves, short *current_move, short zeile, sho
     move[4] = spalte + addSpalte;
 }
 
-int calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte) {
+int calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
     if(my_brett[zeile + 2*addZeile][spalte + 2*addSpalte][0] != '-'){
         return FALSE;
     }
@@ -374,7 +375,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
         new_brett[zeile + 2*addZeile][spalte + 2*addSpalte][i] = my_brett[zeile][spalte][i];
     }
     //eigenen Stein neu platzieren und checken wir ob wir eine Dame werden
-    if((zeile + addZeile + addZeile == 8 && colour == 'w') || (zeile + addZeile + addZeile == 1 && colour == 'b')){
+    if((zeile + addZeile + addZeile == 8 && piece_color == 'w') || (zeile + addZeile + addZeile == 1 && piece_color == 'b')){
         new_brett[zeile + addZeile + addZeile][spalte + addSpalte + addSpalte][0] = my_brett[zeile][spalte][0] - 32;
     }
     
@@ -392,7 +393,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
         next_possible_moves[i] = calloc(27, sizeof(short));
     }
     int getdir = getDir(addZeile, addSpalte);
-    getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, TRUE, getdir);
+    getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, piece_color, TRUE, getdir);
     
     // -1,  5, 6,  7, 8                 // -1  7, 8,  8, 9          // -1  8, 9,  6, 5
     // -1,  5, 6,  7, 8,  8, 9,  6, 5   <- -1  7, 8,  8, 9,  6, 5   <-

@@ -1,6 +1,7 @@
 #include "thinker.h"
 #include "performConnection.h"
 #include "random_ki.h"
+#include "ki.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +42,8 @@ void think() {
 
     clock_t start = clock();
 
-    char* move = getMove(my_brett);
+    //char* move = getMove(my_brett);
+    char* move = getBestMove(my_brett);
     sendToConnector(move);
 
     clock_t end = clock();
