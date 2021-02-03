@@ -1,7 +1,3 @@
-#include "thinker.h"
-#include "random_ki.h"
-#include "performConnection.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -10,6 +6,10 @@
 #include <unistd.h>
 #include <time.h>
 #include <ctype.h>
+
+#include "thinker.h"
+#include "random_ki.h"
+#include "performConnection.h"
 
 #define MOVE_RATING -3
 #define JUMP_RATING -2
@@ -25,11 +25,11 @@
 #define FALSE 0
 
 void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir);
-void calculateDame(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
+void calculateDame(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
 int calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
 void calculateMove(short** possible_moves, short* current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
-void calculateDameMove(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
-int calculateDameJump(short** possible_move, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte);
+void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
+int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte);
 int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
 int getDir(short addZeile, short addSpalte);
 void printMoves(short** possible_moves);
@@ -411,20 +411,43 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
         {
             //Speichere Teilzug in move
             move[k] = next_move[j];
+            //next_move[j] = -200;
             k++;
             j++;
         }
 
-        //Erstelle einen neuen Zug
-        move = possible_moves[(*current_move)++];
+        int isContained = 1;
+        if (i > 0) {
+            short* oldMove = possible_moves[(*current_move)-1];
+            int l = 1;
+            while (move[l] > 0 && l < 27)
+            {
+                if (oldMove[l] != move[l]) {
+                    isContained = 0;
+                }
+                l++;
+            } 
+        } else {
+            isContained = 0;
+        }
 
-        //setze die default Werte für den neuen Zug
-        move[0] = JUMP_RATING; // jump
-        move[1] = zeile; //alte zeile
-        move[2] = spalte; //alte spalte
+        if (!isContained) {
+            //Erstelle einen neuen Zug
+            move = possible_moves[(*current_move)++];
 
-        move[3] = zeile + addZeile + addZeile; //neue zeile
-        move[4] = spalte + addSpalte + addSpalte; //neue spalte
+            //setze die default Werte für den neuen Zug
+            move[0] = JUMP_RATING; // jump
+            move[1] = zeile; //alte zeile
+            move[2] = spalte; //alte spalte
+
+            move[3] = zeile + addZeile + addZeile; //neue zeile
+            move[4] = spalte + addSpalte + addSpalte; //neue spalte 
+        } else {
+            move[0] = -200;
+            for (int n = 1; n < 27; n++){
+                move[n] = 0;
+            }
+        }
     }
 
     //printMoves(possible_moves);
