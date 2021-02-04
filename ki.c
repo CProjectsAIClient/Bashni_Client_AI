@@ -1,7 +1,3 @@
-#include "ki.h"
-#include "random_ki.h"
-#include "performConnection.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -13,19 +9,31 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define MIN_MAX_DEPTH 3
+#include "ki.h"
+#include "random_ki.h"
+#include "performConnection.h"
+#include "thinker.h"
+
+#define MIN_MAX_DEPTH 1
+#define MAXTOWERSIZE 13
+#define FIELDSIZE 9
+
 //2nl0hf6wkemk0
 
-int minMax(char brett[9][9][13], int depth, int maxPlayer);
+double minMax(char brett[9][9][13], int depth, double alpha, double beta, int maxPlayer);
 void getLastPosition(short* next_move, short* childPos);
 double evaluate_position();
-short finalMove [27];
+void simulateMove(char new_brett1 [9][9][13], short* move);
+short finalMove[27];
+
+//2nl0hf6wkemk0
+//06egts1t9gfsa
 
 char* getBestMove(char my_brett[9][9][13]) {
     printf("getBestMove aufgerufen\n");
-    int i;
-    i= minMax(my_brett, MIN_MAX_DEPTH, 1);
-    printf("nach minMax eval: %d\n",i);
+    double i;
+    i = minMax(my_brett, MIN_MAX_DEPTH, -INFINITY, INFINITY, 1);
+    printf("nach minMax eval: %f\n",i);
     printf("finalMove: %hn\n", finalMove);
     char* best_move = translateMove(finalMove);
     printf("move: %s\n", best_move);
@@ -33,14 +41,16 @@ char* getBestMove(char my_brett[9][9][13]) {
 }
 
 
+double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int maximizingPlayer){
+    printf("\n %d", depth);
 
-int minMax(char my_brett[9][9][13], int depth, int maximizingPlayer){
     double evaluation = 0;
     double maxEval, minEval;
     //printf("depth: %i\n", depth);
     if (depth == 0){
         //printf("in der if von depth\n");
         evaluation = evaluate_position(my_brett);
+        printf(" e: %f", evaluation);
         return evaluation;
     }
 
@@ -53,33 +63,58 @@ int minMax(char my_brett[9][9][13], int depth, int maximizingPlayer){
             for (int j = 1; j <= 8; j++) {
                 //printf("in zweiter for: j = %d\n" ,j);
                 if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {
-                    //printf(" (%d, %d)", i, j);
+                    printf(" (%d, %d)", i, j);
 
                     short** possible_moves = calloc(18, sizeof(short*));
                     for (int k = 0; k < 18; k++) {
                         possible_moves[k] = calloc(27, sizeof(short));
                     }
                     getPossibleMovesForPiece(possible_moves, i, j, my_brett, colour, false, 0);
+                    
 
                     int l = 0;
                     short *next_move = possible_moves[l];
 
-                    //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
-                    while ((next_move != NULL) && (next_move[0] != -200) && (l<18)) {
-                        
-                        short* childPos = calloc(2, sizeof(short));
-                        getLastPosition(next_move, childPos);
+                    char new_brett1[9][9][13];
+                    //kopie des bretts
+                    for (int m = 0; m < 9; m++) {
+                        for (int n = 0; n < 9; n++) {
+                            for (int o = 0; o < 13; o++) {
+                                new_brett1[m][n][o] = my_brett[m][n][o]; 
+                            }
+                        }
+                    }
 
-                        int eval = minMax(my_brett, depth-1, 0);
+                    //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
+                    
+                    while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] != 0) && (l<17)) {
+                        simulateMove(new_brett1, next_move);
+
+                        double eval = minMax(new_brett1, depth-1, alpha, beta, 0);
+
+                        //kopie des bretts
+                        for (int m = 0; m < 9; m++) {
+                            for (int n = 0; n < 9; n++) {
+                                for (int o = 0; o < 13; o++) {
+                                    new_brett1[m][n][o] = my_brett[m][n][o]; 
+                                }
+                            }
+                        }
+
                         maxEval = maxEval<eval ? eval : maxEval;
-                        if(eval == maxEval){
+                        // alpha = alpha > eval ? alpha : eval;
+                        // if (beta <= alpha) {
+                        //     break;
+                        // }
+
+
+                        if(eval == maxEval && depth == MIN_MAX_DEPTH){
                             for(int p = 0;p<27;p++){
                                 finalMove[p] = next_move[p];
                             }
                         }
 
                         next_move = possible_moves[++l];
-                        free(childPos);
                     }
 
                     for(int k = 0; k < 18; k++) {
@@ -113,16 +148,38 @@ int minMax(char my_brett[9][9][13], int depth, int maximizingPlayer){
 
                     int l = 0;
                     short *next_move = possible_moves[l];
+                    //printfield(my_brett);
+                    char new_brett1[9][9][13];
+                    //kopie des bretts
+                    for (int m = 0; m < 9; m++) {
+                        for (int n = 0; n < 9; n++) {
+                            for (int o = 0; o < 13; o++) {
+                                new_brett1[m][n][o] = my_brett[m][n][o]; 
+                            }
+                        }
+                    }
 
-                    while ((next_move != NULL) && (next_move[0] != -200) && (i<18)) {
-                        short* childPos = calloc(2, sizeof(short));
-                        getLastPosition(next_move, childPos);
+                    while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] != 0) && (l<17)) {
+                        simulateMove(new_brett1, next_move);
 
-                        int eval = minMax(my_brett, depth-1, 1);
+                        double eval = minMax(new_brett1, depth-1, alpha, beta, 1);
+                        
+                        //kopie des bretts
+                        for (int m = 0; m < 9; m++) {
+                            for (int n = 0; n < 9; n++) {
+                                for (int o = 0; o < 13; o++) {
+                                    new_brett1[m][n][o] = my_brett[m][n][o]; 
+                                }
+                            }
+                        }
+                        
                         minEval = eval<minEval ? eval : minEval;
+                        // beta = eval < beta ? eval : beta;
+                        // if (beta <= alpha) {
+                        //     break;
+                        // }
 
                         next_move = possible_moves[++l];
-                        free(childPos);
                     }
 
                     for(int k = 0; k < 18; k++) {
@@ -134,7 +191,7 @@ int minMax(char my_brett[9][9][13], int depth, int maximizingPlayer){
             }
         }
 
-        if (maxEval == INFINITY) {
+        if (minEval == INFINITY) {
             return evaluate_position(my_brett);
         } else {
             return minEval;
@@ -152,7 +209,9 @@ double evaluate_position(char my_brett[9][9][13]){
             if(my_brett[i][j][0] == toupper(colourEnemy)){heD++;}
         }
     }
-    return 0.6*(me - he) + 0.4*(meD - heD);
+
+    double a = 0.6*(me - he) + 0.4*(meD - heD);
+    return a;
 }
 
 void getLastPosition(short* next_move, short* childPos) {
@@ -165,3 +224,63 @@ void getLastPosition(short* next_move, short* childPos) {
     childPos[0] = next_move[i];
     childPos[1] = next_move[i+1];
 }
+ 
+
+void simulateMove(char new_brett1 [FIELDSIZE][FIELDSIZE][MAXTOWERSIZE], short* move){
+    char current_turm[MAXTOWERSIZE]; 
+    short type = move[0], first_i = move[1], first_j = move[2];
+    
+    for (int i = 0; i < MAXTOWERSIZE; i++){
+        current_turm[i] = new_brett1[first_i][first_j][i];
+    }
+    
+    new_brett1[first_i][first_j][0] = '-';
+
+    int l = 3;
+    int zeile;
+    int spalte;
+    while((move[l] != -200) && (move != NULL) && (move[l] != 0) && l<27){
+        printf("move[%i]: %i\n\n", l, move[l]);
+        printMove(move);
+
+        //zu ueberspringende positionen ermitteln
+        printf("position Ziel: [%i][%i]\n", move[l],move[l+1]);
+        printf("Abstand Position: %i\n", move[l]-move[l-2]);
+        printf("Abstand Position: %i\n", move[l+1]-move[l-1]);
+        printf("Abstand Position: %f\n", (1 / (double) abs(move[l]-move[l-2])));
+        printf("Abstand Position: %f\n", ((move[l] - move[l-2]) * (1 / (double) abs(move[l]-move[l-2]))));
+        printf("Abstand Position: %i\n", abs(-10));
+        zeile = move[l] - ((move[l] - move[l-2]) * (1 / (double) abs(move[l] - move[l-2])));
+        spalte = move[l+1] - ((move[l+1] - move[l-1]) * ((1 / (double) abs(move[l+1] - move[l-1]))));
+        printf("zeile:%i, spalte:%i\n", zeile, spalte);
+        //ueberpringen: neuen wert an der uebersprungenen stelle speichern
+        for (int i = 0; i < MAXTOWERSIZE-1; i++){
+            printf("new_brett1[%i][%i][%i]: %c\n", spalte, zeile, i, new_brett1[zeile][spalte][i]);
+            new_brett1[zeile][spalte][i] = new_brett1[zeile][spalte][i+1];
+            printf("neue version von new_brett1[zeile][spalte][%i]: %c\n", i, new_brett1[zeile][spalte][i]);
+        }
+        new_brett1[zeile][spalte][MAXTOWERSIZE-2]='-';
+
+        for (int i = 0; i < MAXTOWERSIZE-1; i++){
+            new_brett1[move[l+2]][move[l+3]][i] = current_turm[i+1];
+        }
+      
+        l += 2;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

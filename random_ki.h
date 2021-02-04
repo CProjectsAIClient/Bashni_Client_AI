@@ -19,6 +19,10 @@ char* getMove(char my_brett[9][9][13]);
 
 char* translateMove(short* moves);
 
+void printMoves(short** possible_moves);
+
+void printMove(short* move);
+
 char colour, colourEnemy;
 
 #endif

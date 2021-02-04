@@ -1,8 +1,8 @@
-#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "config.h"
 
 //einlesen eines int-werts aus dem config-file
 char *read_string(FILE *file, char const *desired_name);

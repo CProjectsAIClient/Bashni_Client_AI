@@ -1,8 +1,3 @@
-#include "thinker.h"
-#include "performConnection.h"
-#include "random_ki.h"
-#include "ki.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -10,6 +5,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+
+#include "thinker.h"
+#include "performConnection.h"
+#include "random_ki.h"
+#include "ki.h"
 
 //ruft think auf
 void signal_handler(int signal_key);
