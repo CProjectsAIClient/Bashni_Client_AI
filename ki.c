@@ -14,7 +14,7 @@
 #include <stdbool.h>
 
 #define MIN_MAX_DEPTH 3
-//0c3fu3fyyfs1f
+//2nl0hf6wkemk0
 
 int minMax(char brett[9][9][13], int depth, int maxPlayer);
 void getLastPosition(short* next_move, short* childPos);
