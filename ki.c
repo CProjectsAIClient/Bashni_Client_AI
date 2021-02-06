@@ -9,14 +9,16 @@
 #include <math.h>
 #include <stdbool.h>
 
+//0hdy96hg8ukzm
+
 #include "ki.h"
 #include "random_ki.h"
 #include "performConnection.h"
 #include "thinker.h"
 
-#define MIN_MAX_DEPTH 1
-#define MAXTOWERSIZE 13
-#define FIELDSIZE 9
+#define MIN_MAX_DEPTH 7
+#define MAX_TOWER_SIZE 13
+#define FIELD_SIZE 9
 
 //2nl0hf6wkemk0
 
@@ -57,7 +59,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
     if (maximizingPlayer){
         //printf("minMax: maximizingPlayer, going through pieces\n");
         maxEval = - INFINITY;
-
+        int is_jump = false;
         for (int i = 1; i <= 8; i++) {
             //printf("in erster for: i = %d\n" ,i);
             for (int j = 1; j <= 8; j++) {
@@ -69,7 +71,8 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                     for (int k = 0; k < 18; k++) {
                         possible_moves[k] = calloc(27, sizeof(short));
                     }
-                    getPossibleMovesForPiece(possible_moves, i, j, my_brett, colour, false, 0);
+                    
+                    is_jump = is_jump || getPossibleMovesForPiece(possible_moves, i, j, my_brett, colour, false, 0);
                     
 
                     int l = 0;
@@ -88,10 +91,15 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                     //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
                     
                     while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] != 0) && (l<17)) {
-                        simulateMove(new_brett1, next_move);
+                        // simulateMove(new_brett1, next_move);
+                        // printf("\nNach SimMove:\n");
+                        //printfield(new_brett1);
 
+                        if (is_jump && (next_move[0] == MOVE_RATING || next_move[0] == GET_QUEEN_FROM_MOVE_RATING)) {
+                            continue;
+                        }
                         double eval = minMax(new_brett1, depth-1, alpha, beta, 0);
-
+                        
                         //kopie des bretts
                         for (int m = 0; m < 9; m++) {
                             for (int n = 0; n < 9; n++) {
@@ -127,6 +135,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
         }
 
         if (maxEval == -INFINITY) {
+            printf("maxEval == -INFINITY\n\n");
             return evaluate_position(my_brett);
         } else {
             return maxEval;
@@ -134,7 +143,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
     } else {
         //printf("minMax: minimizingPlayer, going through pieces\n");
         minEval = INFINITY;
-
+        int is_jump = 0;
         for (int i = 1; i <= 8; i++) {
             for (int j = 1; j <= 8; j++) {
                 if (my_brett[i][j][0] == colourEnemy || my_brett[i][j][0] == toupper(colourEnemy)) {
@@ -144,7 +153,8 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                     for (int k = 0; k < 18; k++) {
                         possible_moves[k] = calloc(27, sizeof(short));
                     }
-                    getPossibleMovesForPiece(possible_moves, i, j, my_brett, colourEnemy, false, 0);
+                   
+                    is_jump = is_jump || getPossibleMovesForPiece(possible_moves, i, j, my_brett, colourEnemy, false, false);
 
                     int l = 0;
                     short *next_move = possible_moves[l];
@@ -158,10 +168,17 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                             }
                         }
                     }
+                    
+                    
 
                     while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] != 0) && (l<17)) {
-                        simulateMove(new_brett1, next_move);
+                        // printf("\nNach SimMove:\n");
+                        // simulateMove(new_brett1, next_move);
+                        //printfield(new_brett1);
 
+                        if (is_jump && (next_move[0] == MOVE_RATING || next_move[0] == GET_QUEEN_FROM_MOVE_RATING)) {
+                            continue;
+                        }
                         double eval = minMax(new_brett1, depth-1, alpha, beta, 1);
                         
                         //kopie des bretts
@@ -192,6 +209,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
         }
 
         if (minEval == INFINITY) {
+            printf("minEval == INFINITY\n\n");
             return evaluate_position(my_brett);
         } else {
             return minEval;
@@ -201,6 +219,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
 
 double evaluate_position(char my_brett[9][9][13]){
     int me=0, meD=0, he=0, heD=0;
+    //printf("colour: %c with ", colour);
     for(int i=1;i<=8;i++){
         for(int j=1; j<=8;j++){
             if(my_brett[i][j][0] == colour){me++;}
@@ -211,6 +230,7 @@ double evaluate_position(char my_brett[9][9][13]){
     }
 
     double a = 0.6*(me - he) + 0.4*(meD - heD);
+    printf("bewertung  %f\n", a);
     return a;
 }
 
@@ -226,61 +246,69 @@ void getLastPosition(short* next_move, short* childPos) {
 }
  
 
-void simulateMove(char new_brett1 [FIELDSIZE][FIELDSIZE][MAXTOWERSIZE], short* move){
-    char current_turm[MAXTOWERSIZE]; 
+void simulateMove(char new_brett1 [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short* move){
+    //turm an der pos von der aus der jump gemacht wird "springer"
+    char current_turm[MAX_TOWER_SIZE]; 
+    //Art des moves (bewertung), Anfangszeile, Anfangsspalte
     short type = move[0], first_i = move[1], first_j = move[2];
-    
-    for (int i = 0; i < MAXTOWERSIZE; i++){
+    int towersize = 1;
+    //momentane position in move
+    int l = 3;
+
+    //zu ueberspringende zeile und spalte
+    int zeile;
+    int spalte;
+
+    //turm an Anfangspos einspeichern
+    for (int i = 0; i < MAX_TOWER_SIZE; i++){
         current_turm[i] = new_brett1[first_i][first_j][i];
+        if(new_brett1[first_i][first_j][i] != '-'){
+            towersize += 1;
+        }
     }
     
     new_brett1[first_i][first_j][0] = '-';
 
-    int l = 3;
-    int zeile;
-    int spalte;
+    
     while((move[l] != -200) && (move != NULL) && (move[l] != 0) && l<27){
-        printf("move[%i]: %i\n\n", l, move[l]);
-        printMove(move);
+        // printf("move[%i]: %i\n\n", l, move[l]);
+        //printMove(move);
 
-        //zu ueberspringende positionen ermitteln
-        printf("position Ziel: [%i][%i]\n", move[l],move[l+1]);
-        printf("Abstand Position: %i\n", move[l]-move[l-2]);
-        printf("Abstand Position: %i\n", move[l+1]-move[l-1]);
-        printf("Abstand Position: %f\n", (1 / (double) abs(move[l]-move[l-2])));
-        printf("Abstand Position: %f\n", ((move[l] - move[l-2]) * (1 / (double) abs(move[l]-move[l-2]))));
-        printf("Abstand Position: %i\n", abs(-10));
-        zeile = move[l] - ((move[l] - move[l-2]) * (1 / (double) abs(move[l] - move[l-2])));
-        spalte = move[l+1] - ((move[l+1] - move[l-1]) * ((1 / (double) abs(move[l+1] - move[l-1]))));
-        printf("zeile:%i, spalte:%i\n", zeile, spalte);
-        //ueberpringen: neuen wert an der uebersprungenen stelle speichern
-        for (int i = 0; i < MAXTOWERSIZE-1; i++){
-            //printf("new_brett1[%i][%i][%i]: %c\n", spalte, zeile, i, new_brett1[zeile][spalte][i]);
-            new_brett1[zeile][spalte][i] = new_brett1[zeile][spalte][i+1];
-            //printf("neue version von new_brett1[zeile][spalte][%i]: %c\n", i, new_brett1[zeile][spalte][i]);
+        int isJump = (abs(first_i - move[l]) > 1) || (abs(first_j - move[l+1]) > 1);
+        if (isJump) {
+            //zu ueberspringende positionen ermitteln
+            // printf("position Ziel: [%i][%i]\n", move[l],move[l+1]);
+            // printf("Abstand Position: %i\n", move[l]-move[l-2]);
+            // printf("Abstand Position: %i\n", move[l+1]-move[l-1]);
+            // printf("Abstand Position: %f\n", (1 / (double) abs(move[l]-move[l-2])));
+            // printf("Abstand Position: %f\n", ((move[l] - move[l-2]) * (1 / (double) abs(move[l]-move[l-2]))));
+            // printf("Abstand Position: %i\n", abs(-10));
+            zeile = move[l] - ((move[l] - move[l-2]) * (1 / (double) abs(move[l] - move[l-2])));
+            spalte = move[l+1] - ((move[l+1] - move[l-1]) * ((1 / (double) abs(move[l+1] - move[l-1]))));
+            // printf("zeile:%i, spalte:%i\n", zeile, spalte);
+            if ( (towersize+1) < MAX_TOWER_SIZE){
+                current_turm[towersize+1] = new_brett1[zeile][spalte][0];
+            }
+            //ueberpringen: neuen wert an der uebersprungenen stelle speichern
+            for(int i = 0; i < MAX_TOWER_SIZE; i++){
+                //printf("new_brett1[%i][%i][%i]: %c\n", spalte, zeile, i, new_brett1[zeile][spalte][i]);
+                new_brett1[zeile][spalte][i] = new_brett1[zeile][spalte][i+1];
+                
+                //printf("neue version von new_brett1[zeile][spalte][%i]: %c\n", i, new_brett1[zeile][spalte][i]);
+            }
+            new_brett1[zeile][spalte][MAX_TOWER_SIZE-2]='-';
         }
-        new_brett1[zeile][spalte][MAXTOWERSIZE-2]='-';
 
-        for (int i = 0; i < MAXTOWERSIZE-1; i++){
-            new_brett1[move[l+2]][move[l+3]][i] = current_turm[i+1];
+        //unser Turm auf die neue Position setzen
+        for (int i = 0; i < MAX_TOWER_SIZE-1; i++){
+            new_brett1[move[l]][move[l+1]][i] = current_turm[i];
         }
-      
+        // printfield(new_brett1);
         l += 2;
     }
+    
+    // printf("\nIn SimMove:\n");
+    // printfield(new_brett1);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//1v9artrkybbyf

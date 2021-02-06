@@ -6,32 +6,25 @@
 #include <unistd.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "thinker.h"
 #include "random_ki.h"
 #include "performConnection.h"
-
-#define MOVE_RATING -3
-#define JUMP_RATING -2
-#define GET_QUEEN_RATING -1
-#define JUMP_QUEEN_RATING 3
 
 #define DIR_UP_RIGHT 1
 #define DIR_UP_LEFT 2
 #define DIR_DOWN_RIGHT 3
 #define DIR_DOWN_LEFT 4
 
-#define TRUE 1
-#define FALSE 0
-
-void getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir);
+int getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir);
 void calculateDame(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
 int calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
 void calculateMove(short** possible_moves, short* current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
 void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte);
-int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte);
-int getDir(short addZeile, short addSpalte);
+int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour);
+int getDir(short addZeile, short addSpalte, char piece_color);
 void printMoves(short** possible_moves);
 void printMove(short* move);
 char* translateMove(short* moves);
@@ -72,7 +65,7 @@ char* getMove(char my_brett[9][9][13]){
         for (j = 1; j <= 8; j++) {
             if (my_brett[i][j][0] == colour || my_brett[i][j][0] == toupper(colour)) {
                 short move[12];
-                getPossibleMovesForPiece(saveMoves[counter], i, j, my_brett, colour, FALSE, 0);
+                getPossibleMovesForPiece(saveMoves[counter], i, j, my_brett, colour, false, 0);
 
                 
                 if (saveMoves[counter][0][0] != -200) {
@@ -99,13 +92,13 @@ char* getMove(char my_brett[9][9][13]){
     }
     char* random_move;
     
-    short x, isjump = FALSE;
+    short x, isjump = false;
     if (jmpcounter == 0) {
         x = rand() % counter;
     } else {
         short z = rand() % jmpcounter;
         x = jumps[z];
-        isjump = TRUE;
+        isjump = true;
     }
     
     int possible_moves_counter = 0;
@@ -131,12 +124,12 @@ char* getMove(char my_brett[9][9][13]){
 }
 
 //berechnet mgl Zuege fuer einen Stein
-void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir){
+int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir){
     short dir = (piece_color == 'w') ? 1 : -1, current_move = 0;
     possible_moves[0][0] = (short) -200;
 
     //pruefe auf dame
-    if (my_brett[zeile][spalte][0] == toupper(colour)){
+    if (my_brett[zeile][spalte][0] == toupper(piece_color)){
         printf("dir == %d\n", jump_dir);
         if (!is_jump || jump_dir != DIR_DOWN_LEFT) {
             printf("if DIR_DOWN_LEFT\n");
@@ -170,33 +163,36 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
             //berechnet mgl Moves nach unten links
             calculateDameMove(possible_moves, &current_move, zeile, spalte, my_brett, -dir, -dir);
         }
+
+        return is_jump;
     }
     //normaler Stein
     else {
-        int didJump = FALSE, dirUpperRight = FALSE, dirUpperLeft = FALSE;
+        int didJump = false, dirUpperRight = false, dirUpperLeft = false;
+        char piece_enemy_colour = (piece_color == 'w' ? 'b' : 'w');
 
         /*
          * Jump Abfragen
          */
         //springe falls schwarz nach oben rechts
-        if (jmpPossible(my_brett, zeile, spalte, dir, dir)){
+        if (jmpPossible(my_brett, zeile, spalte, dir, dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, dir);
-            dirUpperRight = TRUE;
+            dirUpperRight = true;
         }
         //springe falls schwarz nach oben links
-        if (jmpPossible(my_brett, zeile, spalte, dir, -dir)){
+        if (jmpPossible(my_brett, zeile, spalte, dir, -dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, -dir);
-            dirUpperLeft = TRUE;
+            dirUpperLeft = true;
         }
         //springe falls schwarz nach unten rechts
-        if (jmpPossible(my_brett, zeile, spalte, -dir, dir)){
+        if (jmpPossible(my_brett, zeile, spalte, -dir, dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, dir);
         }
         //springe falls schwarz nach unten links
-        if (jmpPossible(my_brett, zeile, spalte, -dir, -dir)){
+        if (jmpPossible(my_brett, zeile, spalte, -dir, -dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, -dir);
         }
@@ -204,21 +200,23 @@ void getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte,
         /*
          * Move Abfragen
          */
-        if (didJump == FALSE && is_jump == FALSE) {
-            if (dirUpperRight == FALSE){
+        if (didJump == false && is_jump == false) {
+            if (dirUpperRight == false){
                 //Move falls oben rechts frei
                 if ((zeile + dir) >0 && (spalte + dir) <=8 && (spalte + dir) >0 && (zeile + dir) <=8 && my_brett[zeile + dir][spalte + dir][0] == '-'){
                     calculateMove(possible_moves, &current_move, piece_color, zeile, spalte, dir, dir);
                 }
             }
 
-            if (dirUpperLeft == FALSE){
+            if (dirUpperLeft == false){
                 //Move falls oben links frei
                 if ((zeile + dir) <=8 && (zeile + dir) >0 && (spalte - dir) <=8 && (spalte - dir) >0 && my_brett[zeile + dir][spalte - dir][0] == '-'){
                     calculateMove(possible_moves, &current_move, piece_color, zeile, spalte, dir, -dir);
                 }
             }
         }
+
+        return didJump;
     }
 }
 
@@ -291,7 +289,7 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         for (int i = 0; i < 18; i++) {
             next_possible_moves[i] = calloc(27, sizeof(short));
         }
-        getPossibleMovesForPiece(next_possible_moves, i+ addZeile, j + addSpalte, new_brett, piece_color, TRUE, getDir(addZeile, addSpalte));
+        getPossibleMovesForPiece(next_possible_moves, i+ addZeile, j + addSpalte, new_brett, piece_color, true, getDir(addZeile, addSpalte, piece_color));
 
 
         int i = 0;// 12 34 78 910 spielbrett // -1 12 34 78 ??// -1 34 78 910// -1 78 910
@@ -329,16 +327,16 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         }
         free(next_possible_moves);
 
-        return TRUE;
+        return true;
     }
     
-    return FALSE;
+    return false;
 }
 void calculateMove(short** possible_moves, short *current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
     short* move = possible_moves[(*current_move)++];
 
     if ((zeile + addZeile == 8 && piece_color == 'w') || (zeile + addZeile == 1 && piece_color == 'b')){
-        move[0] = GET_QUEEN_RATING;//ist Dame geworden
+        move[0] = GET_QUEEN_FROM_MOVE_RATING;//ist Dame geworden
     } else {
         move[0] = MOVE_RATING;//move
     }
@@ -352,7 +350,7 @@ void calculateMove(short** possible_moves, short *current_move, char piece_color
 
 int calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
     if(my_brett[zeile + 2*addZeile][spalte + 2*addSpalte][0] != '-'){
-        return FALSE;
+        return false;
     }
 
     char new_brett [9][9][13];
@@ -393,8 +391,8 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
     for (int i = 0; i < 18; i++) {
         next_possible_moves[i] = calloc(27, sizeof(short));
     }
-    int getdir = getDir(addZeile, addSpalte);
-    getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, piece_color, TRUE, getdir);
+    int getdir = getDir(addZeile, addSpalte, piece_color);
+    getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, piece_color, true, getdir);
     
     // -1,  5, 6,  7, 8                 // -1  7, 8,  8, 9          // -1  8, 9,  6, 5
     // -1,  5, 6,  7, 8,  8, 9,  6, 5   <- -1  7, 8,  8, 9,  6, 5   <-
@@ -460,7 +458,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
     }
     free(next_possible_moves);
 
-    return TRUE;
+    return true;
 }
 
 void printMoves(short** possible_moves) {
@@ -515,26 +513,26 @@ char* translateMove(short* moves) {
     return arr;
 }
 
-int jmpPossible(char my_brett [9][9][13], short zeile, short spalte, short addZeile, short addSpalte){
+int jmpPossible(char my_brett [9][9][13], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour){
     return (zeile + addZeile + addZeile) <9 
         && (zeile + addZeile + addZeile) >0 
         && (spalte + addSpalte + addSpalte) <9 
         && (spalte + addSpalte + addSpalte) >0 
         && (
-            my_brett[zeile + addZeile][spalte + addSpalte][0] == colourEnemy 
-            || my_brett[zeile + addZeile][spalte + addSpalte][0] == toupper(colourEnemy)
+            my_brett[zeile + addZeile][spalte + addSpalte][0] == piece_enemy_colour 
+            || my_brett[zeile + addZeile][spalte + addSpalte][0] == toupper(piece_enemy_colour)
         );
 }
 
-int getDir(short addZeile, short addSpalte) {
+int getDir(short addZeile, short addSpalte, char piece_color) {
     if (addZeile > 0 && addSpalte > 0) {
-        return (colour == 'w') ? DIR_UP_RIGHT : DIR_DOWN_LEFT;
+        return (piece_color == 'w') ? DIR_UP_RIGHT : DIR_DOWN_LEFT;
     } else if (addZeile > 0 && addSpalte < 0) {
-        return (colour == 'w') ? DIR_UP_LEFT : DIR_DOWN_RIGHT;
+        return (piece_color == 'w') ? DIR_UP_LEFT : DIR_DOWN_RIGHT;
     } else if (addZeile < 0 && addSpalte > 0) {
-        return (colour == 'w') ? DIR_DOWN_RIGHT : DIR_UP_LEFT;
+        return (piece_color == 'w') ? DIR_DOWN_RIGHT : DIR_UP_LEFT;
     } else if (addZeile < 0 && addSpalte < 0) {
-        return (colour == 'w') ? DIR_DOWN_LEFT : DIR_UP_RIGHT;
+        return (piece_color == 'w') ? DIR_DOWN_LEFT : DIR_UP_RIGHT;
     }
 }
 
