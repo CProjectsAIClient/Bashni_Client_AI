@@ -255,9 +255,9 @@ void simulateMove(char new_brett1 [FIELDSIZE][FIELDSIZE][MAXTOWERSIZE], short* m
         printf("zeile:%i, spalte:%i\n", zeile, spalte);
         //ueberpringen: neuen wert an der uebersprungenen stelle speichern
         for (int i = 0; i < MAXTOWERSIZE-1; i++){
-            printf("new_brett1[%i][%i][%i]: %c\n", spalte, zeile, i, new_brett1[zeile][spalte][i]);
+            //printf("new_brett1[%i][%i][%i]: %c\n", spalte, zeile, i, new_brett1[zeile][spalte][i]);
             new_brett1[zeile][spalte][i] = new_brett1[zeile][spalte][i+1];
-            printf("neue version von new_brett1[zeile][spalte][%i]: %c\n", i, new_brett1[zeile][spalte][i]);
+            //printf("neue version von new_brett1[zeile][spalte][%i]: %c\n", i, new_brett1[zeile][spalte][i]);
         }
         new_brett1[zeile][spalte][MAXTOWERSIZE-2]='-';
 
