@@ -2,6 +2,7 @@
 #define random_ki
 
 #include "performConnection.h"
+#include "thinker.h"
 
 #define MIN_MAX_DEPTH 7
 #define MAX_TOWER_SIZE 13

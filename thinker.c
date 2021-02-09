@@ -24,13 +24,13 @@ void save_brett_in_matrix(char color, int column, int row);
 
 void* shmdata;
 void *shmThinkerdata;
-int pipe_fd;
+int pipe_fd_thinker;
 int ok = 1;
 int turn = 0;
 
 void startThinker(void * shmdata1, int pipe) {
     shmdata = shmdata1;
-    pipe_fd = pipe;
+    pipe_fd_thinker = pipe;
     
     //Signal Handler registrieren
     signal(SIGUSR1, signal_handler);
@@ -38,7 +38,7 @@ void startThinker(void * shmdata1, int pipe) {
 }
 
 void think() {
-    printf("Berechne Spielzug...");
+    //spielzug wird berechen
 
     clock_t start = clock();
 
@@ -48,7 +48,7 @@ void think() {
 
     clock_t end = clock();
     float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-    printf("TIME SPENT: %f\n\n", seconds);
+    // printf("TIME SPENT: %f\n\n", seconds);
 
     free(move);
 }
@@ -56,7 +56,7 @@ void think() {
 void sendToConnector(char* message) {
     int length = strlen(message);
 
-    if (write(pipe_fd, message, length) != length) {
+    if (write(pipe_fd_thinker, message, length) != length) {
         perror("Fehler bei write() in pipe");
         exit (-2);
     }
@@ -79,7 +79,7 @@ void signal_handler(int signal_key) {
     memcpy(current_game, shmdata, sizeof(game));
     
     int anzahlSteine = current_game->pieces_count;
-    printf("AnzahlSteine: %i\n", anzahlSteine);
+    // printf("AnzahlSteine: %i\n", anzahlSteine);
 
     char currentBrett[anzahlSteine][5];
     memcpy(currentBrett, shmThinkerdata, sizeof(char) * anzahlSteine * 5);
