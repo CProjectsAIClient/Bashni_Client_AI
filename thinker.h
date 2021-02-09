@@ -1,11 +1,13 @@
 #ifndef thinker
 #define thinker
 
-char my_brett[9][9][13];
+#include "random_ki.h"
+
+char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
 
 void startThinker(void * shmdata1, int pipe);
 
-void printfield(char print[9][9][13]);
+void printfield(char print[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]);
 
 void signal_handler(int signal_key);
 

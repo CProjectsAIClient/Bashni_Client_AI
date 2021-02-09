@@ -42,8 +42,8 @@ void think() {
 
     clock_t start = clock();
 
-    //char* move = getMove(my_brett);
-    char* move = getBestMove(my_brett);
+    char* move = getMove(my_brett);
+    //char* move = getBestMove(my_brett);
     sendToConnector(move);
 
     clock_t end = clock();
@@ -112,7 +112,7 @@ void signal_handler(int signal_key) {
 void reinitialize_brett_with_null(){
     for(int i=0;i<=8;i++){
         for(int j=0;j<=8;j++){
-            for (int x=0;x<=12;x++){
+            for (int x=0;x<MAX_TOWER_SIZE;x++){
                 my_brett[i][j][x] = '-';
             }
         }
@@ -135,7 +135,7 @@ void save_brett_in_matrix(char color, int column, int row){
 
 }
 
-void printfield(char print[9][9][13]) {
+void printfield(char print[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]) {
 
     turn++;
     printf("   A B C D E F G H\n");
@@ -166,7 +166,7 @@ void printfield(char print[9][9][13]) {
             if (print[z][i][0] == 'w' || print[z][i][0] == 'W') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
-                for(int j=12; j>=0; j--) {
+                for(int j=MAX_TOWER_SIZE-1; j>=0; j--) {
                     if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }
@@ -182,7 +182,7 @@ void printfield(char print[9][9][13]) {
             if (print[z][i][0] == 'b' || print[z][i][0] == 'B') {
                 count = i + 64;
                 printf("%c%i: ", count, z);
-                for(int j=12; j>=0; j--) {
+                for(int j=MAX_TOWER_SIZE-1; j>=0; j--) {
                     if (print[z][i][j] != '-') {
                         printf("%c", print[z][i][j]);
                     }

@@ -16,22 +16,20 @@
 #include "performConnection.h"
 #include "thinker.h"
 
-#define MIN_MAX_DEPTH 7
-#define MAX_TOWER_SIZE 13
-#define FIELD_SIZE 9
+
 
 //2nl0hf6wkemk0
 
-double minMax(char brett[9][9][13], int depth, double alpha, double beta, int maxPlayer);
+double minMax(char brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], int depth, double alpha, double beta, int maxPlayer);
 void getLastPosition(short* next_move, short* childPos);
 double evaluate_position();
-void simulateMove(char new_brett1 [9][9][13], short* move);
+void simulateMove(char new_brett1 [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short* move);
 short finalMove[27];
 
 //2nl0hf6wkemk0
 //06egts1t9gfsa
 
-char* getBestMove(char my_brett[9][9][13]) {
+char* getBestMove(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]) {
     printf("getBestMove aufgerufen\n");
     double i;
     i = minMax(my_brett, MIN_MAX_DEPTH, -INFINITY, INFINITY, 1);
@@ -43,7 +41,7 @@ char* getBestMove(char my_brett[9][9][13]) {
 }
 
 
-double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int maximizingPlayer){
+double minMax(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], int depth, double alpha, double beta, int maximizingPlayer){
     printf("\n %d", depth);
 
     double evaluation = 0;
@@ -78,11 +76,11 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                     int l = 0;
                     short *next_move = possible_moves[l];
 
-                    char new_brett1[9][9][13];
+                    char new_brett1[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
                     //kopie des bretts
                     for (int m = 0; m < 9; m++) {
                         for (int n = 0; n < 9; n++) {
-                            for (int o = 0; o < 13; o++) {
+                            for (int o = 0; o < MAX_TOWER_SIZE; o++) {
                                 new_brett1[m][n][o] = my_brett[m][n][o]; 
                             }
                         }
@@ -103,7 +101,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                         //kopie des bretts
                         for (int m = 0; m < 9; m++) {
                             for (int n = 0; n < 9; n++) {
-                                for (int o = 0; o < 13; o++) {
+                                for (int o = 0; o < MAX_TOWER_SIZE; o++) {
                                     new_brett1[m][n][o] = my_brett[m][n][o]; 
                                 }
                             }
@@ -159,11 +157,11 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                     int l = 0;
                     short *next_move = possible_moves[l];
                     //printfield(my_brett);
-                    char new_brett1[9][9][13];
+                    char new_brett1[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
                     //kopie des bretts
                     for (int m = 0; m < 9; m++) {
                         for (int n = 0; n < 9; n++) {
-                            for (int o = 0; o < 13; o++) {
+                            for (int o = 0; o < MAX_TOWER_SIZE; o++) {
                                 new_brett1[m][n][o] = my_brett[m][n][o]; 
                             }
                         }
@@ -184,7 +182,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
                         //kopie des bretts
                         for (int m = 0; m < 9; m++) {
                             for (int n = 0; n < 9; n++) {
-                                for (int o = 0; o < 13; o++) {
+                                for (int o = 0; o < MAX_TOWER_SIZE; o++) {
                                     new_brett1[m][n][o] = my_brett[m][n][o]; 
                                 }
                             }
@@ -217,7 +215,7 @@ double minMax(char my_brett[9][9][13], int depth, double alpha, double beta, int
     }
 }
 
-double evaluate_position(char my_brett[9][9][13]){
+double evaluate_position(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]){
     int me=0, meD=0, he=0, heD=0;
     //printf("colour: %c with ", colour);
     for(int i=1;i<=8;i++){

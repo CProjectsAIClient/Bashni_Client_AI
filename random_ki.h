@@ -3,11 +3,15 @@
 
 #include "performConnection.h"
 
+#define MIN_MAX_DEPTH 7
+#define MAX_TOWER_SIZE 13
+#define FIELD_SIZE 9
+
 void initialize_random_ki(struct game* game_struct);
 
-int getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13],char piece_colour, int is_jump, int jump_dir);
+int getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE],char piece_colour, int is_jump, int jump_dir);
 
-char* getMove(char my_brett[9][9][13]);
+char* getMove(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]);
 
 char* translateMove(short* moves);
 

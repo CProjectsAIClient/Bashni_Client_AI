@@ -17,13 +17,13 @@
 #define DIR_DOWN_RIGHT 3
 #define DIR_DOWN_LEFT 4
 
-int getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir);
-void calculateDame(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13]);
-int calculateJump(short** possible_moves, short* current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
+int getPossibleMovesForPiece(short** possible_moves, short i, short j, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, int is_jump, int jump_dir);
+void calculateDame(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]);
+int calculateJump(short** possible_moves, short* current_move, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
 void calculateMove(short** possible_moves, short* current_move, char piece_color, short zeile, short spalte, short addZeile, short addSpalte);
-void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte);
-int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte);
-int jmpPossible(char my_brett[9][9][13], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour);
+void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short addZeile, short addSpalte);
+int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, short addZeile, short addSpalte);
+int jmpPossible(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour);
 int getDir(short addZeile, short addSpalte, char piece_color);
 void printMoves(short** possible_moves);
 void printMove(short* move);
@@ -43,7 +43,7 @@ void initialize_random_ki(struct game* game_struct){
 
 
 //zusammenfassung aller mgl moves und eintscheidung fuer einen
-char* getMove(char my_brett[9][9][13]){
+char* getMove(char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE]){
     //[[[0, C, 4, D, 5, E, 3], [0, C, 4, d, 5]], []]
     short*** saveMoves = calloc(12, sizeof(short*));
 
@@ -124,7 +124,7 @@ char* getMove(char my_brett[9][9][13]){
 }
 
 //berechnet mgl Zuege fuer einen Stein
-int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[9][9][13], char piece_color, int is_jump, int jump_dir){
+int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, int is_jump, int jump_dir){
     short dir = (piece_color == 'w') ? 1 : -1, current_move = 0;
     possible_moves[0][0] = (short) -200;
 
@@ -220,7 +220,7 @@ int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, 
     }
 }
 
-void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], short addZeile, short addSpalte) {
+void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short addZeile, short addSpalte) {
     printf("trying to calculate Dame Move from (%d, %d) with addZeile: %d, addSpalte %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile, j = spalte;
 
@@ -239,7 +239,7 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
     }
 }
 
-int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[9][9][13], char piece_color, short addZeile, short addSpalte) {
+int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, short addZeile, short addSpalte) {
     printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile + addZeile, j = spalte + addSpalte;
     // if(i>8 || i<1){
@@ -266,10 +266,10 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         move[4] = j+addSpalte;
         
         //kopie des bretts
-        char new_brett[9][9][13];
+        char new_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-                for (int k = 0; k < 13; k++) {
+                for (int k = 0; k < MAX_TOWER_SIZE; k++) {
                     new_brett[i][j][k] = my_brett[i][j][k];
                 }
             }
@@ -280,7 +280,7 @@ int calculateDameJump(short** possible_moves, short* current_move, short zeile, 
         //Übersprungene Position leeren
         new_brett[i][j][0] = '-';
         //Aktuellen Turm zu neuer Position kopieren
-        // for (int i = 0; i < 13; i++) {
+        // for (int i = 0; i < MAX_TOWER_SIZE; i++) {
         //     new_brett[i+addZeile][j+addSpalte][i] = my_brett[zeile][spalte][i];
         // }
         new_brett[i+addZeile][j+addSpalte][0] = my_brett[zeile][spalte][0];
@@ -348,17 +348,17 @@ void calculateMove(short** possible_moves, short *current_move, char piece_color
     move[4] = spalte + addSpalte;
 }
 
-int calculateJump(short** possible_moves, short *current_move, char my_brett[9][9][13], char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
+int calculateJump(short** possible_moves, short *current_move, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, short zeile, short spalte, short addZeile, short addSpalte) {
     if(my_brett[zeile + 2*addZeile][spalte + 2*addSpalte][0] != '-'){
         return false;
     }
 
-    char new_brett [9][9][13];
+    char new_brett [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
     
     //kopie des bretts
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            for (int k = 0; k < 13; k++) {
+            for (int k = 0; k < MAX_TOWER_SIZE; k++) {
                new_brett[i][j][k] = my_brett[i][j][k]; 
             }
         }
@@ -370,7 +370,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[9][
     new_brett[zeile][spalte][0] = '-';
 
     //Aktuellen Turm zu neuer Position kopieren
-    for (int i = 0; i < 13; i++) {
+    for (int i = 0; i < MAX_TOWER_SIZE; i++) {
         new_brett[zeile + 2*addZeile][spalte + 2*addSpalte][i] = my_brett[zeile][spalte][i];
     }
     //eigenen Stein neu platzieren und checken wir ob wir eine Dame werden
@@ -513,7 +513,7 @@ char* translateMove(short* moves) {
     return arr;
 }
 
-int jmpPossible(char my_brett [9][9][13], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour){
+int jmpPossible(char my_brett [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short zeile, short spalte, short addZeile, short addSpalte, char piece_enemy_colour){
     return (zeile + addZeile + addZeile) <9 
         && (zeile + addZeile + addZeile) >0 
         && (spalte + addSpalte + addSpalte) <9 
