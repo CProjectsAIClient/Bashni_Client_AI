@@ -36,7 +36,7 @@ void startThinker(void * shmdata1, int pipe) {
 }
 
 void think() {
-    printf("Berechne Spielzug...");
+    //spielzug wird berechen
 
     clock_t start = clock();
 
@@ -45,7 +45,7 @@ void think() {
 
     clock_t end = clock();
     float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-    printf("TIME SPENT: %f\n\n", seconds);
+    // printf("TIME SPENT: %f\n\n", seconds);
 
     free(move);
 }
@@ -68,19 +68,19 @@ void signal_handler(int signal_key) {
         printf("Fehler beim Anbinden des SHM fuer das Feld im Thinker\n");
         exit(-3);
     }
-    printf("shmat im Thinker funktioniert\n");
 
     memcpy(current_game, shmdata, sizeof(game));
 
-    printf("PiecesCount: %i, ", current_game->pieces_count);
-    printf("Gamename: %s, ", current_game->name);
-    printf("Playernummer: %d, ", current_game->player_number);
-    printf("Playeranzahl: %d, ", current_game->player_count);
-    printf("ThinkerID: %i, ", current_game->thinkerID);
-    printf("ConnectorID: %d\n\n", current_game->connectorID);
+    //Moeglichkeit die Werte der Struktur ausgeben zu lassen
+    // printf("PiecesCount: %i, ", current_game->pieces_count);
+    // printf("Gamename: %s, ", current_game->name);
+    // printf("Playernummer: %d, ", current_game->player_number);
+    // printf("Playeranzahl: %d, ", current_game->player_count);
+    // printf("ThinkerID: %i, ", current_game->thinkerID);
+    // printf("ConnectorID: %d\n\n", current_game->connectorID);
      
     int anzahlSteine = current_game->pieces_count;
-    printf("AnzahlSteine: %i\n", anzahlSteine);
+    // printf("AnzahlSteine: %i\n", anzahlSteine);
 
     char currentBrett[anzahlSteine][5];
     memcpy(currentBrett, shmThinkerdata, sizeof(char) * anzahlSteine * 5);
@@ -104,14 +104,12 @@ void signal_handler(int signal_key) {
     printfield(brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
-    printf("flag: %i\n", current_game->flag);
     if ((current_game->flag) == 1){
         initialize_random_ki(current_game);
         think();
     }
     else{
         //GAME OVER
-        printf("flag ist %i, gell?\n", current_game->flag);
         exit(10);
     }
 }
