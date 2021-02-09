@@ -23,13 +23,13 @@ void save_brett_in_matrix(char color, int column, int row);
 
 void* shmdata;
 void *shmThinkerdata;
-int pipe_fd;
+int pipe_fd_thinker;
 int ok = 1;
 int turn = 0;
 
 void startThinker(void * shmdata1, int pipe) {
     shmdata = shmdata1;
-    pipe_fd = pipe;
+    pipe_fd_thinker = pipe;
     
     //Signal Handler registrieren
     signal(SIGUSR1, signal_handler);
@@ -53,7 +53,7 @@ void think() {
 void sendToConnector(char* message) {
     int length = strlen(message);
 
-    if (write(pipe_fd, message, length) != length) {
+    if (write(pipe_fd_thinker, message, length) != length) {
         perror("Fehler bei write() in pipe");
         exit (-2);
     }

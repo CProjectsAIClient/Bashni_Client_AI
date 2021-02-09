@@ -1,9 +1,8 @@
 stages:
   - build
-  - test
 
 build:
-  image: dliu/ubuntu-gcc-valgrind
+  image: gcc:10
   tags:
     - c
   stage: build
@@ -12,21 +11,3 @@ build:
   artifacts:
     paths:
       - sysprak-client
-
-test:
-  image: dliu/ubuntu-gcc-valgrind
-  tags:
-    - c
-  stage: test
-  script:
-    - make test
-
-run:
-  image: dliu/ubuntu-gcc-valgrind
-  tags: 
-    - c
-  stage: test
-  script:
-    - make play
-  when: always
-  allow_failure: true
