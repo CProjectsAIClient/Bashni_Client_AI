@@ -40,7 +40,7 @@ void think() {
 
     clock_t start = clock();
 
-    char* move = getMove(my_brett);
+    char* move = getMove(brett);
     sendToConnector(move);
 
     clock_t end = clock();
@@ -101,7 +101,7 @@ void signal_handler(int signal_key) {
     
     //Spielbrett ausgeben
     printf("Printing Brett (Turn: %i)...\n", turn);
-    printfield(my_brett);// kommt in thinker
+    printfield(brett);// kommt in thinker
 
     //start komplizierte KI Berechnung
     printf("flag: %i\n", current_game->flag);
@@ -120,7 +120,7 @@ void reinitialize_brett_with_null(){
     for(int i=0;i<=8;i++){
         for(int j=0;j<=8;j++){
             for (int x=0;x<=12;x++){
-                my_brett[i][j][x] = '-';
+                brett[i][j][x] = '-';
             }
         }
     }
@@ -129,16 +129,16 @@ void reinitialize_brett_with_null(){
 
 void save_brett_in_matrix(char color, int column, int row){
     int i = 0, check = 0;
-    while(my_brett[row][column][i] == 'b' || my_brett[row][column][i] == 'w' || my_brett[row][column][i] == 'B' || my_brett[row][column][i] == 'W'){
+    while(brett[row][column][i] == 'b' || brett[row][column][i] == 'w' || brett[row][column][i] == 'B' || brett[row][column][i] == 'W'){
         i++;
         check = 1;
     }
     if(check == 1)
         for(int k=i-1;k>=0;k--){
-            my_brett[row][column][k + 1] = my_brett[row][column][k];
+            brett[row][column][k + 1] = brett[row][column][k];
         }
 
-    my_brett[row][column][0] = color;
+    brett[row][column][0] = color;
 
 }
 

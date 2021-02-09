@@ -1,7 +1,7 @@
 #ifndef thinker
 #define thinker
 
-char my_brett[9][9][13];
+char brett[9][9][13];
 
 void startThinker(void * shmdata1, int pipe);
 
