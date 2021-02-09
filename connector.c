@@ -98,10 +98,7 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
         else if(strncmp(buffer, "+ MOVE", 6) == 0){
             //Anzahl der Spielsteine lesen
             sscanf(myread(sock, buffer), "+ PIECESLIST %i", &current_game->pieces_count);
-
-            current_game->flag = continue_run;//1
-            printf("wert von continue_run %i\n", continue_run);
-            printf("wert der flag %i\n", current_game->flag);
+            current_game->flag = continue_run;
 
             //die Positionen wurden gelesen, jetzt sollen wir sie an Thinker übergeben und den Zug berechnen.
             saveAndSendBrett(sock,shmConnectordata, current_game->pieces_count, current_game);

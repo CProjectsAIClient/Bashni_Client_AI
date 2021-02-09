@@ -2,6 +2,7 @@
 #define random_ki
 
 #include "performConnection.h"
+#include "thinker.h"
 
 void initialize_random_ki(struct game* game_struct);
 
