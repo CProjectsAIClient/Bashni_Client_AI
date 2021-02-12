@@ -50,8 +50,12 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
-
-    game_config game_conf = parse_config(konfig);
+    game_config game_conf;
+    game_conf.hostname   = "sysprak.priv.lab.nm.ifi.lmu.de";
+    game_conf.portnumber = 1357;
+    game_conf.gametype   = "Bashni";
+    
+    game_conf = parse_config(konfig);
     printf("Hostname: %s, ", game_conf.hostname);
     printf("Port: %d, ", game_conf.portnumber);
     printf("Type: %s \n", game_conf.gametype);
