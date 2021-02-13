@@ -44,8 +44,8 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
 
             case '?':
-                printf("\nID oder gewuenschte Spielernummer fehlt.\n\n👽 unidentified lifeform instead of or in -g or -p... pls identify yourself 👽\n\n");
-                return EXIT_FAILURE;
+                printf("\nID, gewuenschte Spielernummer oder config name fehlt.\n\n👽 unidentified lifeform instead of or in -g or -p... pls identify yourself 👽\n\n");
+                break;
 
             default:
                 printf("Irgendwas laeuft schief bei getopt!\n");
