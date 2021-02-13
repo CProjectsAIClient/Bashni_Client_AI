@@ -17,14 +17,12 @@
 void printWelcome();
 
 int main(int argc, char *argv[]) {
-    printWelcome();
-    clock_t start = clock();
     //variablen fuer konsolenparameter
     char *gameid = NULL;
     int playerid = 0;
     //konfig ist client.conf, wenn es vom Client nicht anders präzisiert wird
     char *konfig = "client.conf";
-    
+    //int gameid_gegeben = 0;
     //einlesen der Konsolenwerte mit getopt fuer eingaben -g gameid -p player und -c fuer die konfigurationsdatei
     int c;
     while ((c = getopt(argc,argv, "g:p:c:")) != -1){
@@ -32,22 +30,26 @@ int main(int argc, char *argv[]) {
             case 'g':
                 gameid = optarg;
                 break;
+
             case 'p':
                 playerid = atoi(optarg) - 1;
-                //printf("playerid: %i/n", playerid);
                 break;
+
             case 'c':
                 konfig = optarg;
                 break;
+
             case ':':
                 printf("Wert fehlt fuer g, c oder p❤!\n");
-                break;
+                return EXIT_FAILURE;
+
             case '?':
-                printf("Falsches Argument oder Aehnliches...\n");
-                break;
+                printf("\nID oder gewuenschte Spielernummer fehlt.\n\n👽 unidentified lifeform instead of or in -g or -p... pls identify yourself 👽\n\n");
+                return EXIT_FAILURE;
+
             default:
                 printf("Irgendwas laeuft schief bei getopt!\n");
-                break;
+                return EXIT_FAILURE;
         }
     }
     game_config game_conf;
@@ -55,6 +57,8 @@ int main(int argc, char *argv[]) {
     game_conf.portnumber = 1357;
     game_conf.gametype   = "Bashni";
     
+    printWelcome();
+
     game_conf = parse_config(konfig);
     printf("Hostname: %s, ", game_conf.hostname);
     printf("Port: %d, ", game_conf.portnumber);
@@ -108,8 +112,10 @@ int main(int argc, char *argv[]) {
     
         //Prolog Phase
         doperformConnection(sock, gameid, playerid, shmdata);
+        
         //Epoll für pipe und socket initialisieren
         startConnector(sock, &pipe_fd[0]);
+        
         //Spielverlauf Phase + kommuniktion zwischen server und thinker herstellen
         doSpielVerlauf(sock, playerid, shmdata);
     } else {
@@ -125,16 +131,7 @@ int main(int argc, char *argv[]) {
         startThinker(shmdata, pipe_fd[1]);
 
         //Auf Connector Prozess warten, falls noch nicht terminiert
-        pid_t waiting = waitpid(pid, NULL, 0);
-        if (waiting > 0) {
-            printf("Es wurde kein Prozess gefunden auf den gewartet werden konnte. Terminieren...");
-        } else {
-            printf("Es wurde auf Prozess %d gwartet.", waiting);
-        }
-
-        clock_t end = clock();
-        float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-        printf("\nWHOLE TIME SPENT: %f\n\n", seconds);
+        waitpid(pid, NULL, 0);
     }
 
     shmdt(shmdata);
@@ -143,7 +140,6 @@ int main(int argc, char *argv[]) {
     free(game_conf.hostname);
     free(sock);
 
-    printf("\nTERMINATING PROCESS WITH ID %d\n\n", pid);
     return EXIT_SUCCESS;
 }
 

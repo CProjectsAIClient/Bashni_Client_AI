@@ -149,7 +149,6 @@ void doSpielVerlauf(int *sock, int player, struct game *current_game) {
 
     free(buffer);
     shmdt(shmConnectordata);
-    printf("Terminating connector...\n");
 }
 
 void saveAndSendBrett(int* sock, void* shmAddress, int feldgr, struct game * current_game) {
@@ -225,7 +224,7 @@ void onGameover(int* sock, struct game* current_game, char* buffer) {
     }
 
     printf("\n===================\n");
-    printf("%s\n", current_game->player_number == winner ? "🎉 You won!" : "😢 The Enemy won.\nYou lost.");
+    printf("%s\n", current_game->player_number == winner ? "🎉 You won!" : "😢 The Enemy won.\n   You lost.");
     printf("===================\n\n");
     
     //Quit

@@ -3,6 +3,7 @@ OUT     = sysprak-client
 CC      = gcc
 FLAGS   = -Wall -Wextra -Werror -g
 O_FLAGS = -g
+BUNDLE  = abgabe.zip
 
 all: main.c $(OBJS)
 	$(CC) -o $(OUT) $(FLAGS) main.c $(OBJS)
@@ -26,7 +27,7 @@ ki.o: ki.c
 	$(CC) $(O_FLAGS) -c ki.c
 
 clean:
-	rm -f $(OBJS) $(OUT)
+	rm -f $(OBJS) $(OUT) $(BUNDLE)
 
 play:
 	./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)
@@ -34,3 +35,5 @@ play:
 test:
 	valgrind --leak-check=full --trace-children=yes ./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)
 
+bundle:
+	zip -r $(BUNDLE) ./ -x "*.git*" -x "*.vscode*" -x "*.idea*" -x "*$(BUNDLE)*" -x "*.o" -x "*sysprak-client*"

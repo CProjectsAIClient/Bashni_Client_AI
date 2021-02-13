@@ -130,7 +130,7 @@ int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, 
 
     //pruefe auf dame
     if (my_brett[zeile][spalte][0] == toupper(piece_color)){
-        printf("dir == %d\n", jump_dir);
+
         if (!is_jump || jump_dir != DIR_DOWN_LEFT) {
 
             //Überprüfe auf Jump nach rechts oben
@@ -216,12 +216,13 @@ int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, 
             }
         }
 
+
         return didJump;
     }
 }
 
 void calculateDameMove(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], short addZeile, short addSpalte) {
-    printf("trying to calculate Dame Move from (%d, %d) with addZeile: %d, addSpalte %d\n", zeile, spalte, addZeile, addSpalte);
+    // printf("trying to calculate Dame Move from (%d, %d) with addZeile: %d, addSpalte %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile, j = spalte;
 
     while((my_brett[i+addZeile][j+addSpalte][0] == '-') && (addZeile > 0 ? (i<=7) : (i>=2)) && (addSpalte > 0 ? (j<=7) : (j>=2))){
@@ -240,7 +241,7 @@ void calculateDameMove(short** possible_moves, short* current_move, short zeile,
 }
 
 int calculateDameJump(short** possible_moves, short* current_move, short zeile, short spalte, char my_brett[FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], char piece_color, short addZeile, short addSpalte) {
-    printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
+    //printf("trying calculate Dame Jump from (%d, %d) with addZeile: %d, addSpalte: %d\n", zeile, spalte, addZeile, addSpalte);
     short i = zeile + addZeile, j = spalte + addSpalte;
     // if(i>8 || i<1){
     //     return;
@@ -375,7 +376,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
     }
     //eigenen Stein neu platzieren und checken wir ob wir eine Dame werden
     if((zeile + addZeile + addZeile == 8 && piece_color == 'w') || (zeile + addZeile + addZeile == 1 && piece_color == 'b')){
-        new_brett[zeile + addZeile + addZeile][spalte + addSpalte + addSpalte][0] = my_brett[zeile][spalte][0] - 32;
+        new_brett[zeile + addZeile + addZeile][spalte + addSpalte + addSpalte][0] = toupper(my_brett[zeile][spalte][0]);
     }
     
 
@@ -401,7 +402,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
     short *next_move = next_possible_moves[i];
 
     //Überprüfen ob erster Zug von next_possible_moves ein Jump ist (-1)
-    while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] == JUMP_RATING)) {
+    while ((next_move != NULL) && (next_move[0] != -200) && (next_move[0] == JUMP_RATING || next_move[0] == JUMP_QUEEN_RATING)) {
         int j = 3, k = 5;
         next_move = next_possible_moves[i];
 
@@ -415,7 +416,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
             j++;
         }
 
-        printf("i: %d\n", i);
+        // printf("i: %d\n", i);
         int isContained = 1;
         if (i > 0) {
             short* oldMove = possible_moves[(*current_move)-1];
@@ -452,7 +453,6 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
         i++;
     }
 
-    //printMoves(possible_moves);
     for (int i = 0; i < 18; i++) {
         free(next_possible_moves[i]);
     }

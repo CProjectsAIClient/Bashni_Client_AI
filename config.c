@@ -10,7 +10,7 @@ char *read_string(FILE *file, char const *desired_name);
 int read_int(FILE *file, char const *desired_name, int *ret);
 
 game_config parse_config(char *file_name) {
-    printf("Opening file %s...\n", file_name);
+    //printf("Opening file %s...\n", file_name);
 
     FILE *datei = fopen(file_name, "r");
     if(NULL == datei) {

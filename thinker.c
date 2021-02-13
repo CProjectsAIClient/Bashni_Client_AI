@@ -34,7 +34,6 @@ void startThinker(void * shmdata1, int pipe) {
     
     //Signal Handler registrieren
     signal(SIGUSR1, signal_handler);
-    printf("Terminating thinker...\n");
 }
 
 void think() {
@@ -42,8 +41,8 @@ void think() {
 
     clock_t start = clock();
 
-    char* move = getMove(my_brett);
-    //char* move = getBestMove(my_brett);
+    char* move = getMove(my_brett); //random ki
+    //char* move = getBestMove(my_brett); //minMax ki (under construction 🚧👷)
     sendToConnector(move);
 
     clock_t end = clock();
