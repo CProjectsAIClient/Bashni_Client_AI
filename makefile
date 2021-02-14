@@ -36,4 +36,4 @@ test:
 	valgrind --leak-check=full --trace-children=yes ./sysprak-client -g $(GAME_ID) -p $(PLAYER) -c $(GAME_CONFIG)
 
 bundle:
-	zip -r $(BUNDLE) ./ -x "*.git*" -x "*.vscode*" -x "*.idea*" -x "*$(BUNDLE)*" -x "*.o" -x "*sysprak-client*"
+	zip -r $(BUNDLE) ./ -x "*.git*" -x "*.vscode*" -x "*.idea*" -x "*$(BUNDLE)*" -x "*.o" -x "*$(OUT)*"

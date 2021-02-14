@@ -275,12 +275,7 @@ void simulateMove(char new_brett1 [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], shor
         int isJump = (abs(first_i - move[l]) > 1) || (abs(first_j - move[l+1]) > 1);
         if (isJump) {
             //zu ueberspringende positionen ermitteln
-            // printf("position Ziel: [%i][%i]\n", move[l],move[l+1]);
-            // printf("Abstand Position: %i\n", move[l]-move[l-2]);
-            // printf("Abstand Position: %i\n", move[l+1]-move[l-1]);
-            // printf("Abstand Position: %f\n", (1 / (double) abs(move[l]-move[l-2])));
-            // printf("Abstand Position: %f\n", ((move[l] - move[l-2]) * (1 / (double) abs(move[l]-move[l-2]))));
-            // printf("Abstand Position: %i\n", abs(-10));
+
             zeile = move[l] - ((move[l] - move[l-2]) * (1 / (double) abs(move[l] - move[l-2])));
             spalte = move[l+1] - ((move[l+1] - move[l-1]) * ((1 / (double) abs(move[l+1] - move[l-1]))));
             // printf("zeile:%i, spalte:%i\n", zeile, spalte);
@@ -301,7 +296,7 @@ void simulateMove(char new_brett1 [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE], shor
         for (int i = 0; i < MAX_TOWER_SIZE-1; i++){
             new_brett1[move[l]][move[l+1]][i] = current_turm[i];
         }
-        // printfield(new_brett1);
+        //printfield(new_brett1);
         l += 2;
     }
     

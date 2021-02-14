@@ -175,24 +175,24 @@ int getPossibleMovesForPiece(short** possible_moves, short zeile, short spalte, 
          * Jump Abfragen
          */
         //springe falls schwarz nach oben rechts
-        if (jmpPossible(my_brett, zeile, spalte, dir, dir, piece_enemy_colour)){
+        if (jump_dir != DIR_DOWN_LEFT && jmpPossible(my_brett, zeile, spalte, dir, dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, dir);
             dirUpperRight = true;
         }
         //springe falls schwarz nach oben links
-        if (jmpPossible(my_brett, zeile, spalte, dir, -dir, piece_enemy_colour)){
+        if (jump_dir != DIR_DOWN_RIGHT && jmpPossible(my_brett, zeile, spalte, dir, -dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, dir, -dir);
             dirUpperLeft = true;
         }
         //springe falls schwarz nach unten rechts
-        if (jmpPossible(my_brett, zeile, spalte, -dir, dir, piece_enemy_colour)){
+        if (jump_dir != DIR_UP_LEFT && jmpPossible(my_brett, zeile, spalte, -dir, dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, dir);
         }
         //springe falls schwarz nach unten links
-        if (jmpPossible(my_brett, zeile, spalte, -dir, -dir, piece_enemy_colour)){
+        if (jump_dir != DIR_UP_RIGHT && jmpPossible(my_brett, zeile, spalte, -dir, -dir, piece_enemy_colour)){
             //Abfragen ob nächstes Feld hinter dem gegnerischen Stein frei ist
             didJump = calculateJump(possible_moves, &current_move, my_brett, piece_color, zeile, spalte, -dir, -dir);
         }
@@ -353,7 +353,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
     if(my_brett[zeile + 2*addZeile][spalte + 2*addSpalte][0] != '-'){
         return false;
     }
-
+    //printf("zeile: %i, spalte: %i, dir_i: %i, dir_j: %i\n", zeile, spalte, addZeile, addSpalte);
     char new_brett [FIELD_SIZE][FIELD_SIZE][MAX_TOWER_SIZE];
     
     //kopie des bretts
@@ -367,6 +367,11 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
 
     //stein den wir ueberspringen loeschen
     new_brett[zeile + addZeile][spalte + addSpalte][0] = '-';
+    for (int i = 0; i < MAX_TOWER_SIZE-1; i++) {
+        new_brett[zeile + addZeile][spalte + addSpalte][i] = new_brett[zeile + addZeile][spalte + addSpalte][i+1];
+    }
+    new_brett[zeile + addZeile][spalte + addSpalte][MAX_TOWER_SIZE-1]='-';
+    
     //alte Position des eigenen Steins löschen
     new_brett[zeile][spalte][0] = '-';
 
@@ -392,6 +397,7 @@ int calculateJump(short** possible_moves, short *current_move, char my_brett[FIE
     for (int i = 0; i < 18; i++) {
         next_possible_moves[i] = calloc(27, sizeof(short));
     }
+
     int getdir = getDir(addZeile, addSpalte, piece_color);
     getPossibleMovesForPiece(next_possible_moves, zeile + addZeile + addZeile, spalte + addSpalte + addSpalte, new_brett, piece_color, true, getdir);
     
